@@ -1,7 +1,7 @@
 {
 	"name": "@pageflip/react",
 	"version": "0.0.0",
-	"description": "React bindings for PageFlip",
+	"description": "React 18+ wrapper for PageFlip core",
 	"type": "module",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
@@ -16,17 +16,27 @@
 	"files": ["dist"],
 	"scripts": {
 		"dev": "bun build src/index.ts --watch --outdir dist --target bun",
-		"build": "bun build src/index.ts --outdir dist --target bun --external @pageflip/*",
+		"build": "bun build src/index.ts --outdir dist --target bun --external react --external @pageflip/*",
 		"lint": "biome check . && bunx eslint . --ext .ts,.tsx",
 		"lint:fix": "biome check --write . && bunx eslint . --ext .ts,.tsx --fix",
 		"typecheck": "tsc --noEmit",
 		"test": "bun test",
 		"test:coverage": "bun test --coverage",
-		"deps:check": "ncu --peer --filterVersion '^' --reject '@pageflip/*'",
-		"deps:update": "ncu --peer --filterVersion '^' --reject '@pageflip/*' -u && bun install",
-		"storybook": "bun -e \"console.log('react storybook placeholder')\"",
-		"build-storybook": "bun -e \"console.log('react build-storybook placeholder')\"",
 		"clean": "rm -rf dist"
+	},
+	"peerDependencies": {
+		"react": ">=18.2.0",
+		"react-dom": ">=18.2.0"
+	},
+	"devDependencies": {
+		"@pageflip/tsconfig": "workspace:*",
+		"@pageflip/biome-config": "workspace:*",
+		"@pageflip/eslint-config": "workspace:*",
+		"@types/react": "18.3.0",
+		"@types/react-dom": "18.3.0",
+		"react": "18.3.0",
+		"react-dom": "18.3.0",
+		"typescript": "5.6.3"
 	},
 	"author": "Ignacio Bockl",
 	"license": "MIT",
@@ -34,15 +44,8 @@
 		"type": "git",
 		"url": "https://github.com/ignaciobockl/pageflip.git"
 	},
-	"bugs": { "url": "https://github.com/ignaciobockl/pageflip/issues" },
-	"homepage": "https://pageflip.dev",
-	"keywords": ["page-flip", "flip-book", "pageflip", "react", "animation"],
-	"devDependencies": {
-		"@pageflip/tsconfig": "workspace:*",
-		"@pageflip/biome-config": "workspace:*",
-		"@pageflip/eslint-config": "workspace:*",
-		"typescript": "5.6.3"
+	"bugs": {
+		"url": "https://github.com/ignaciobockl/pageflip/issues"
 	},
-	"peerDependencies": {},
-	"trustedDependencies": []
+	"homepage": "https://pageflip.dev"
 }
