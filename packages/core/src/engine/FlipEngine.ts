@@ -4,11 +4,12 @@
  * Orchestrates the page flip animation state machine.
  * @packageDocumentation
  */
-import {
-	DEFAULT_PAGE_CORNER_SIZE,
-	EVENT_NAMES,
-	KEYBOARD_SHORTCUTS,
-} from "../constants";
+
+import { EVENT_NAMES, KEYBOARD_SHORTCUTS } from "../constants";
+
+import { LayoutCalculator } from "../layout/LayoutCalculator";
+import type { LayoutResult } from "../layout/LayoutCalculator";
+import { OrientationManager } from "../layout/OrientationManager";
 import { PluginManager } from "../plugins/PluginManager";
 import { RendererFactory } from "../renderers/RendererFactory";
 import type {
@@ -32,11 +33,9 @@ import {
 	calculateFoldAngle,
 	calculateFoldCurve,
 	calculateFoldProgress,
-	getCornerHitArea,
 } from "./bezier";
 import {
 	DEFAULT_CONFIG,
-	calculateLayoutBounds,
 	createHtmlPages,
 	createImagePages,
 	createSourcePages,
@@ -64,11 +63,6 @@ type FlipRuntime = {
 	flipTargetPage: number;
 	frameId: number | null;
 };
-
-/**
- * Interactive page corners.
- */
-const FLIP_CORNERS: readonly FlipCorner[] = ["top", "bottom"];
 
 /**
  * Check whether a keyboard shortcut contains a pressed key.
@@ -106,6 +100,12 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 	private resizeObserver: ResizeObserver | null = null;
 	/** Effective configuration. */
 	private config: Required<PageFlipConfig>;
+	/** Layout calculator instance. */
+	private readonly layoutCalculator: LayoutCalculator;
+	/** Orientation manager instance. */
+	private readonly orientationManager: OrientationManager;
+	/** Current layout result. */
+	private currentLayout: LayoutResult | null = null;
 
 	/**
 	 * Create a new FlipEngine instance.
@@ -116,10 +116,17 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 		this.config = { ...DEFAULT_CONFIG, ...config };
 		this.canvas = this.createCanvas();
 		this.container.appendChild(this.canvas);
+		this.layoutCalculator = new LayoutCalculator();
+		this.orientationManager = new OrientationManager(this.layoutCalculator);
+		this.orientationManager.setPortraitPreference(this.config.usePortrait);
 		this.bindEvents();
 		this.calculateLayout();
+		void this.orientationManager.updateOrientation(
+			this.container.getBoundingClientRect(),
+			this.config,
+		);
 		void this.initialize();
-		this.dispatchEvent(new CustomEvent(EVENT_NAMES.INIT, { detail: this }));
+		this.emitInit();
 	}
 
 	/** Current page count. */
@@ -218,11 +225,22 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 	public updateConfig(config: Partial<PageFlipConfig>): void {
 		const previousOrientation = this.runtime.orientation;
 		this.config = { ...this.config, ...config };
+		if (config.usePortrait !== undefined) {
+			this.orientationManager.setPortraitPreference(config.usePortrait);
+		}
 		this.calculateLayout();
-		if (previousOrientation !== this.runtime.orientation) {
+		void this.orientationManager.updateOrientation(
+			this.container.getBoundingClientRect(),
+			this.config,
+		);
+		if (this.runtime.orientation !== previousOrientation) {
 			this.emitOrientationChange(previousOrientation);
 		}
 		this.emitUpdate();
+	}
+	/** Get current layout result. */
+	public getLayout(): LayoutResult | null {
+		return this.currentLayout;
 	}
 
 	/** Create the canvas element. */
@@ -296,24 +314,31 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 				: new ResizeObserver(() => this.onResize());
 		this.resizeObserver?.observe(this.container);
 	}
-	/** Calculate current layout. */
+	/** Emit initialization event. */
+	private emitInit(): void {
+		this.dispatchEvent(new CustomEvent(EVENT_NAMES.INIT, { detail: this }));
+	}
+	/** Calculate layout using the layout calculator. */
 	private calculateLayout(): void {
-		const layout = calculateLayoutBounds(
+		this.currentLayout = this.layoutCalculator.calculate(
 			this.container.getBoundingClientRect(),
 			this.config,
 		);
-		this.runtime.bounds = layout.bounds;
-		this.runtime.orientation = layout.orientation;
+		this.runtime.bounds = this.currentLayout.pageRect;
+		this.runtime.orientation = this.currentLayout.orientation;
 		this.resizeCanvas();
 	}
 	/** Resize canvas backing store. */
 	private resizeCanvas(): void {
+		if (!this.currentLayout) {
+			return;
+		}
 		const dpr = window.devicePixelRatio || 1;
-		this.canvas.width = this.runtime.bounds.width * dpr;
-		this.canvas.height = this.runtime.bounds.height * dpr;
+		this.canvas.width = this.currentLayout.pageRect.width * dpr;
+		this.canvas.height = this.currentLayout.pageRect.height * dpr;
 		this.runtime.renderer?.resize(
-			this.runtime.bounds.width,
-			this.runtime.bounds.height,
+			this.currentLayout.pageRect.width,
+			this.currentLayout.pageRect.height,
 			dpr,
 		);
 	}
@@ -324,43 +349,31 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 	}
 	/** Get the current page rectangle. */
 	private getCurrentPageRect(): Rect {
-		return {
-			x: 0,
-			y: 0,
-			width: this.runtime.bounds.width,
-			height: this.runtime.bounds.height,
-		};
+		return this.currentLayout?.pageRect ?? this.runtime.bounds;
 	}
-	/** Hit test an interactive page corner. */
-	private hitTestCorner(point: Point): FlipCorner | null {
-		return (
-			FLIP_CORNERS.find((corner) => {
-				const area = getCornerHitArea(
-					this.getCurrentPageRect(),
-					corner,
-					DEFAULT_PAGE_CORNER_SIZE,
-				);
-				return (
-					point.x >= area.x &&
-					point.x <= area.x + area.width &&
-					point.y >= area.y &&
-					point.y <= area.y + area.height
-				);
-			}) ?? null
-		);
-	}
-	/** Start pointer interaction. */
-	private onPointerStart(clientX: number, clientY: number): void {
+	/** Start drag interaction from a page corner. */
+	private startDrag(point: Point): void {
 		if (this.runtime.state !== "idle" || !this.config.showPageCorners) {
 			return;
 		}
-		const point = this.getCanvasPoint(clientX, clientY);
-		const corner = this.hitTestCorner(point);
-		if (corner) {
-			this.runtime.dragPoint = point;
-			this.runtime.activeCorner = corner;
-			this.setState("user_fold");
+		if (!this.currentLayout) {
+			return;
 		}
+		const corner = this.layoutCalculator.hitTestCorner(
+			point,
+			this.currentLayout.pageRect,
+		);
+		if (!corner) {
+			return;
+		}
+		this.runtime.dragPoint = point;
+		this.runtime.activeCorner =
+			corner === "top-left" || corner === "top-right" ? "top" : "bottom";
+		this.setState("user_fold");
+	}
+	/** Start pointer interaction. */
+	private onPointerStart(clientX: number, clientY: number): void {
+		this.startDrag(this.getCanvasPoint(clientX, clientY));
 	}
 	/** Update pointer interaction. */
 	private onPointerMove(clientX: number, clientY: number): void {
@@ -406,14 +419,21 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 		this.render();
 	}
 	/** Handle click interactions. */
+	private handleClick(point: Point): void {
+		if (!this.currentLayout) {
+			return;
+		}
+		const isRightSide =
+			point.x >
+			this.currentLayout.pageRect.x + this.currentLayout.pageRect.width / 2;
+		void (isRightSide ? this.flipNext() : this.flipPrev());
+	}
+	/** Handle click interactions. */
 	private onClick(clientX: number, clientY: number): void {
 		if (this.config.disableFlipByClick || this.runtime.state !== "idle") {
 			return;
 		}
-		const point = this.getCanvasPoint(clientX, clientY);
-		void (point.x > this.getCurrentPageRect().width / 2
-			? this.flipNext()
-			: this.flipPrev());
+		this.handleClick(this.getCanvasPoint(clientX, clientY));
 	}
 	/** Handle touch start. */
 	private onTouchStart(event: TouchEvent): void {
@@ -454,6 +474,13 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 	/** Handle resize updates. */
 	private onResize(): void {
 		this.calculateLayout();
+		const orientationEvent = this.orientationManager.updateOrientation(
+			this.container.getBoundingClientRect(),
+			this.config,
+		);
+		if (orientationEvent) {
+			this.emitOrientationChange(orientationEvent.previousOrientation);
+		}
 		this.render();
 		this.emitUpdate();
 	}
