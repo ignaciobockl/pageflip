@@ -61,3 +61,63 @@ State getters:
 - `orientation`
 - `state`
 - `bounds`
+
+## Layout Calculator API (`@pageflip/core/layout`)
+
+### `LayoutCalculator`
+
+```typescript
+import { LayoutCalculator } from '@pageflip/core/layout';
+
+const calculator = new LayoutCalculator({
+  minWidth: 300,
+  maxWidth: 1200,
+  minHeight: 400,
+  maxHeight: 1600,
+});
+```
+
+#### `calculate(containerRect, config)`
+Returns `LayoutResult` with:
+- `pageWidth`, `pageHeight` - Page size in CSS pixels
+- `scale` - Scale factor to fit container
+- `offsetX`, `offsetY` - Centered position
+- `orientation` - 'portrait' | 'landscape'
+- `pageRect` - Page bounds in container coordinates
+- `containerRect` - Original container bounds
+
+#### `calculateFixed(containerRect, pageSize, usePortrait)`
+Fixed size mode layout.
+
+#### `calculateStretch(containerRect, constraints, usePortrait)`
+Stretch/responsive mode layout.
+
+#### `hitTestCorner(point, pageRect, cornerSize?)`
+Returns `'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | null`
+
+---
+
+### `OrientationManager`
+
+```typescript
+import { OrientationManager } from '@pageflip/core/layout';
+
+const orientation = new OrientationManager(layoutCalculator);
+orientation.setPortraitPreference(true);
+orientation.setOrientationLock('none'); // 'portrait' | 'landscape' | 'none'
+
+orientation.onOrientationChange((event) => {
+  console.log(event.orientation, event.previousOrientation, event.automatic);
+});
+```
+
+---
+
+### `Constraints` Utilities
+
+```typescript
+import { validateConstraints, clampSizeToConstraints } from '@pageflip/core/layout';
+
+const constraints = validateConstraints({ minWidth: 300, maxWidth: 800 });
+const clamped = clampSizeToConstraints({ width: 1000, height: 500 }, constraints);
+```

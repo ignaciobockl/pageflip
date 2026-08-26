@@ -2,9 +2,6 @@
 cache = true
 registry = "https://registry.npmjs.org"
 
-[run]
-bun = "bun"
-
 [test]
 coverage = true
 coverageMode = "process"
