@@ -102,6 +102,84 @@ Available hooks:
 - `usePageFlipState`
 - `usePageFlipEvents`
 
+## Web Components API
+
+`@pageflip/web-component` provides framework-agnostic custom elements with Shadow DOM, named slots, and SSR-friendly markup.
+
+### Setup
+
+```ts
+import "@pageflip/web-component";
+```
+
+### `page-flip-book`
+
+```html
+<page-flip-book width="800" height="600" size="stretch" theme="dark" aria-label="Product catalog">
+	<div slot="pages">
+		<article>Page 1</article>
+		<article>Page 2</article>
+	</div>
+	<page-flip-toolbar slot="toolbar" position="bottom"></page-flip-toolbar>
+	<page-flip-corner slot="page-corner-top-right" corner="top-right"></page-flip-corner>
+</page-flip-book>
+```
+
+Supports:
+
+- attributes like `width`, `height`, `size`, `flipping-time`, `theme`, `renderer`
+- named slots: `pages`, `toolbar`, `page-corner-top-left`, `page-corner-top-right`, `page-corner-bottom-left`, `page-corner-bottom-right`
+- public methods: `flipNext`, `flipPrev`, `flip`, `turnToPage`, `turnToNextPage`, `turnToPrevPage`, `loadFromHtml`, `loadFromImages`, `loadFromSources`, `updateFromHtml`, `updateFromImages`, `setRenderer`, `updateConfig`, `destroy`
+- events: `init`, `flip`, `statechange`, `orientationchange`, `update`, `error`, `dragStart`, `dragMove`, `dragEnd`
+
+```ts
+const book = document.querySelector("page-flip-book");
+
+book?.addEventListener("flip", (event) => {
+	console.log((event as CustomEvent).detail.pageIndex);
+});
+
+await book?.flipNext();
+await book?.turnToPage(4);
+```
+
+### `page-flip-toolbar`
+
+```html
+<page-flip-toolbar slot="toolbar" position="top"></page-flip-toolbar>
+```
+
+Provides first/previous/next/last controls plus a synced page indicator.
+
+### `page-flip-page-indicator`
+
+```html
+<page-flip-page-indicator max-dots="8"></page-flip-page-indicator>
+<page-flip-page-indicator show-numbers="true"></page-flip-page-indicator>
+```
+
+Supports dot navigation or select-based navigation through `show-numbers`.
+
+### `page-flip-corner`
+
+```html
+<page-flip-corner slot="page-corner-bottom-right" corner="bottom-right"></page-flip-corner>
+```
+
+Supports drag gestures, keyboard activation, and corner positioning through the `corner` and `visible` attributes.
+
+### `page-flip-loading-spinner`
+
+```html
+<page-flip-loading-spinner size="lg" color="var(--pf-color-primary)"></page-flip-loading-spinner>
+```
+
+Supports `sm`, `md`, and `lg` sizes with accessible loading semantics.
+
+### SSR note
+
+Render the custom element markup on the server and hydrate on the client after importing `@pageflip/web-component`. Shadow DOM encapsulation and named slots remain stable for progressive enhancement.
+
 ## Theme API
 
 `@pageflip/theme` provides CSS design tokens, a Tailwind v4 preset, and ready-to-use UI components for the React integration.
