@@ -190,31 +190,3 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with: { name: playwright-report, path: playwright-report/, retention-days: 7 }
-
-  release:
-    name: Release to npm
-    runs-on: ubuntu-latest
-    needs: [validate, quality, a11y, storybook, e2e]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    permissions: { contents: write, packages: write, pull-requests: write }
-    steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
-      - uses: oven-sh/setup-bun@v1
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, registry-url: 'https://registry.npmjs.org' }
-      - run: bun install --frozen-lockfile
-      - name: Build packages
-        shell: bash
-        run: |
-          for dir in \
-            packages/core \
-            packages/react \
-            packages/theme \
-            packages/renderers \
-            packages/web-component
-          do
-            (cd "$dir" && bun run build)
-          done
-      - run: bunx changeset publish
-        env: { NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}, GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} }
