@@ -25,6 +25,74 @@ Monorepo for the PageFlip ecosystem.
 - shared constants from `packages/core/src/constants`
 - public types from `packages/core/src/types`
 
+## Page API
+
+`@pageflip/core` includes `PageManager` for page lifecycle, lazy loading, cache eviction, and memory tracking.
+
+### `PageManager`
+
+```ts
+import { PageManager } from "@pageflip/core";
+
+const manager = new PageManager({
+  maxCacheSize: 25,
+  lazyLoad: true,
+  preloadAdjacent: true,
+  imageLoadTimeout: 10000,
+  monitorMemory: true,
+});
+
+await manager.loadFromHtml(Array.from(document.querySelectorAll(".page")));
+await manager.loadFromImages(["/pages/1.jpg", "/pages/2.jpg"]);
+await manager.loadFromSources([
+  { type: "html", content: document.createElement("div") },
+  { type: "image", content: "/pages/3.jpg" },
+  { type: "renderer", rendererId: "canvas2d", content: { page: 4 } },
+]);
+
+manager.setCurrentPage(1);
+await manager.ensurePageLoaded(1);
+
+const page = manager.getPage(1);
+const pages = manager.getAllPages();
+const count = manager.getPageCount();
+const loaded = manager.isPageLoaded(1);
+const status = manager.getPageLoadStatus(1);
+const cache = manager.getCacheStats();
+const memory = manager.getMemoryUsage();
+
+manager.onMemoryPressure(() => {
+  console.log("cache eviction triggered");
+});
+
+await manager.updateFromHtml(Array.from(document.querySelectorAll(".page")));
+await manager.updateFromImages(["/pages/1-new.jpg"]);
+
+manager.clear();
+manager.destroy();
+```
+
+Main methods:
+
+- `loadFromHtml(elements, densities?)`
+- `loadFromImages(urls, densities?)`
+- `loadFromSources(sources)`
+- `updateFromHtml(elements)`
+- `updateFromImages(urls)`
+- `getPage(index)`
+- `getAllPages()`
+- `getPageCount()`
+- `setCurrentPage(index)`
+- `ensurePageLoaded(index)`
+- `isPageLoaded(index)`
+- `getPageLoadStatus(index)`
+- `getCacheStats()`
+- `getMemoryUsage()`
+- `setConfig(config)`
+- `onMemoryPressure(callback)`
+- `clear()`
+- `destroy()`
+
 ## Renderer API
 
 `@pageflip/core` includes a Canvas 2D renderer and a renderer factory with automatic fallback selection.
