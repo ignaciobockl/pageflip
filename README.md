@@ -25,6 +25,83 @@ Monorepo for the PageFlip ecosystem.
 - shared constants from `packages/core/src/constants`
 - public types from `packages/core/src/types`
 
+## React API
+
+`@pageflip/react` provides an SSR-safe React 18+ wrapper for the core engine.
+
+### `PageFlip`
+
+```tsx
+import { PageFlip } from "@pageflip/react";
+
+export function Book() {
+  return (
+    <PageFlip width={800} height={600} onFlip={(event) => console.log(event.pageIndex)}>
+      <div>Page 1</div>
+      <div>Page 2</div>
+    </PageFlip>
+  );
+}
+```
+
+Supports:
+
+- `children`, `pages`, or `images` as page sources
+- forwarded refs to the `PageFlipInstance`
+- `onInit`, `onUpdate`, `onFlip`, `onChangeState`, `onChangeOrientation`, `onError`
+
+### Hooks
+
+```tsx
+import {
+  usePageFlip,
+  usePageFlipControls,
+  usePageFlipEvents,
+  usePageFlipState,
+} from "@pageflip/react";
+
+export function BookWithHooks() {
+  const { instance, ref, loading, error, reload } = usePageFlip({
+    width: 800,
+    height: 600,
+    images: ["/pages/1.jpg", "/pages/2.jpg"],
+  });
+  const controls = usePageFlipControls(instance);
+  const state = usePageFlipState(instance);
+
+  usePageFlipEvents(instance, {
+    onFlip: (event) => console.log(event.pageIndex),
+  });
+
+  if (loading) {
+    return <p>Loading…</p>;
+  }
+
+  if (error) {
+    return <p>{error.message}</p>;
+  }
+
+  return (
+    <>
+      <div ref={ref} />
+      <button onClick={() => void controls.prev()}>Prev</button>
+      <button onClick={() => void controls.next()}>Next</button>
+      <button onClick={() => void reload()}>Reload</button>
+      <p>
+        {state.currentPage + 1} / {state.pageCount}
+      </p>
+    </>
+  );
+}
+```
+
+Available hooks:
+
+- `usePageFlip`
+- `usePageFlipControls`
+- `usePageFlipState`
+- `usePageFlipEvents`
+
 ## Page API
 
 `@pageflip/core` includes `PageManager` for page lifecycle, lazy loading, cache eviction, and memory tracking.
