@@ -1,0 +1,12 @@
+{
+  "name": "@pageflip/benchmark",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun -e \"console.log('benchmark placeholder')\"",
+    "build": "bun -e \"console.log('benchmark build placeholder')\"",
+    "lint": "bun -e \"console.log('benchmark lint placeholder')\"",
+    "lint:fix": "bun -e \"console.log('benchmark lint fix placeholder')\"",
+    "typecheck": "bun -e \"console.log('benchmark typecheck placeholder')\""
+  }
+}

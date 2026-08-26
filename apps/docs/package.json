@@ -1,0 +1,12 @@
+{
+  "name": "@pageflip/docs",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun -e \"console.log('docs placeholder')\"",
+    "build": "bun -e \"console.log('docs build placeholder')\"",
+    "lint": "bun -e \"console.log('docs lint placeholder')\"",
+    "lint:fix": "bun -e \"console.log('docs lint fix placeholder')\"",
+    "typecheck": "bun -e \"console.log('docs typecheck placeholder')\""
+  }
+}

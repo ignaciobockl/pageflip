@@ -1,0 +1,13 @@
+{
+  "name": "@pageflip/playground",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun -e \"console.log('playground placeholder')\"",
+    "build": "bun -e \"console.log('playground build placeholder')\"",
+    "lint": "bun -e \"console.log('playground lint placeholder')\"",
+    "lint:fix": "bun -e \"console.log('playground lint fix placeholder')\"",
+    "typecheck": "bun -e \"console.log('playground typecheck placeholder')\"",
+    "test:e2e": "bun -e \"console.log('playground e2e placeholder')\""
+  }
+}
