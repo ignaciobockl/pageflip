@@ -102,6 +102,139 @@ Available hooks:
 - `usePageFlipState`
 - `usePageFlipEvents`
 
+## Theme API
+
+`@pageflip/theme` provides CSS design tokens, a Tailwind v4 preset, and ready-to-use UI components for the React integration.
+
+### CSS tokens
+
+```tsx
+import "@pageflip/theme/tokens.css";
+```
+
+The package exposes variables such as:
+
+- `--pf-color-primary`
+- `--pf-color-bg`
+- `--pf-color-text`
+- `--pf-toolbar-height`
+- `--pf-page-indicator-size`
+- `--pf-zoom-btn-size`
+
+### Components
+
+```tsx
+import { PageFlip } from "@pageflip/react";
+import {
+	FullscreenToggle,
+	KeyboardShortcuts,
+	LoadingSpinner,
+	PageCorner,
+	PageFlipProvider,
+	PageIndicator,
+	Toolbar,
+	ZoomControls,
+} from "@pageflip/theme";
+
+export function ThemedBook() {
+	const controls = {
+		next: async () => {},
+		prev: async () => {},
+		goTo: async (_page: number) => {},
+		flipTo: async (_page: number, _corner?: "top" | "bottom") => {},
+		flipNext: async (_corner?: "top-right" | "bottom-right") => {},
+		flipPrev: async (_corner?: "top-left" | "bottom-left") => {},
+		getCurrentPage: () => 0,
+		getPageCount: () => 12,
+		getOrientation: () => "portrait" as const,
+		getState: () => "idle" as const,
+	};
+
+	return (
+		<div style={{ position: "relative" }}>
+			<PageFlip width={800} height={600} images={["/pages/1.jpg", "/pages/2.jpg"]} />
+			<Toolbar controls={controls} currentPage={0} pageCount={12} />
+			<ZoomControls
+				level={1}
+				onZoomIn={() => {}}
+				onZoomOut={() => {}}
+				onReset={() => {}}
+			/>
+			<FullscreenToggle isFullscreen={false} onToggle={() => {}} />
+			<PageIndicator current={0} total={12} onPageClick={() => {}} />
+			<PageCorner corner="top-right" />
+			<KeyboardShortcuts controls={controls} />
+			<LoadingSpinner />
+		</div>
+	);
+}
+```
+
+Available exports:
+
+- `Toolbar`
+- `PageIndicator`
+- `ZoomControls`
+- `FullscreenToggle`
+- `PageCorner`
+- `LoadingSpinner`
+- `KeyboardShortcuts`
+- `PageFlipProvider`
+- `usePageFlipContext`
+- `usePageFlipInstance`
+- `usePageFlipControls`
+- `usePageFlipState`
+
+### Provider
+
+```tsx
+import { PageFlip } from "@pageflip/react";
+import {
+	PageFlipProvider,
+	Toolbar,
+	usePageFlipControls,
+	usePageFlipState,
+} from "@pageflip/theme";
+
+function Overlay() {
+	const controls = usePageFlipControls();
+	const state = usePageFlipState();
+
+	if (!controls || !state) {
+		return null;
+	}
+
+	return (
+		<Toolbar
+			controls={controls}
+			currentPage={state.currentPage}
+			pageCount={state.pageCount}
+		/>
+	);
+}
+
+export function ProviderExample() {
+	const instance = null;
+
+	return (
+		<PageFlipProvider instance={instance}>
+			<PageFlip width={800} height={600} images={["/pages/1.jpg"]} />
+			<Overlay />
+		</PageFlipProvider>
+	);
+}
+```
+
+### Tailwind v4 preset
+
+```ts
+import pageFlipTheme from "@pageflip/theme/tailwind";
+
+export default {
+	presets: [pageFlipTheme],
+};
+```
+
 ## Page API
 
 `@pageflip/core` includes `PageManager` for page lifecycle, lazy loading, cache eviction, and memory tracking.

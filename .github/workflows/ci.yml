@@ -9,28 +9,6 @@ on:
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-  LINT_WORKSPACES: |
-    apps/benchmark
-    apps/docs
-    apps/playground
-    packages/core
-    packages/react
-    packages/renderers
-    packages/renderers/image
-    packages/renderers/pdf
-    packages/renderers/rtf
-    packages/renderers/video
-    packages/theme
-    packages/web-component
-  BUILD_WORKSPACES: |
-    packages/core
-    packages/react
-    packages/theme
-    packages/renderers
-    packages/web-component
-  STORYBOOK_WORKSPACES: |
-    packages/react
-    packages/web-component
 
 jobs:
   validate:
@@ -50,26 +28,58 @@ jobs:
       - name: Lint
         shell: bash
         run: |
-          while IFS= read -r dir; do
-            [ -z "$dir" ] && continue
+          workspaces=(
+            "apps/benchmark"
+            "apps/docs"
+            "apps/playground"
+            "packages/core"
+            "packages/react"
+            "packages/renderers"
+            "packages/renderers/image"
+            "packages/renderers/pdf"
+            "packages/renderers/rtf"
+            "packages/renderers/video"
+            "packages/theme"
+            "packages/web-component"
+          )
+          for dir in "${workspaces[@]}"; do
             (cd "$dir" && bun run lint)
-          done <<< "$LINT_WORKSPACES"
+          done
       - name: Typecheck
         shell: bash
         run: |
-          while IFS= read -r dir; do
-            [ -z "$dir" ] && continue
+          workspaces=(
+            "apps/benchmark"
+            "apps/docs"
+            "apps/playground"
+            "packages/core"
+            "packages/react"
+            "packages/renderers"
+            "packages/renderers/image"
+            "packages/renderers/pdf"
+            "packages/renderers/rtf"
+            "packages/renderers/video"
+            "packages/theme"
+            "packages/web-component"
+          )
+          for dir in "${workspaces[@]}"; do
             (cd "$dir" && bun run typecheck)
-          done <<< "$LINT_WORKSPACES"
+          done
       - name: Test (unit + coverage)
         run: bun run test:coverage
       - name: Build
         shell: bash
         run: |
-          while IFS= read -r dir; do
-            [ -z "$dir" ] && continue
+          workspaces=(
+            "packages/core"
+            "packages/react"
+            "packages/theme"
+            "packages/renderers"
+            "packages/web-component"
+          )
+          for dir in "${workspaces[@]}"; do
             (cd "$dir" && bun run build)
-          done <<< "$BUILD_WORKSPACES"
+          done
       - name: React Doctor
         run: bun run doctor
         continue-on-error: true
@@ -113,10 +123,16 @@ jobs:
       - name: Build packages
         shell: bash
         run: |
-          while IFS= read -r dir; do
-            [ -z "$dir" ] && continue
+          workspaces=(
+            "packages/core"
+            "packages/react"
+            "packages/theme"
+            "packages/renderers"
+            "packages/web-component"
+          )
+          for dir in "${workspaces[@]}"; do
             (cd "$dir" && bun run build)
-          done <<< "$BUILD_WORKSPACES"
+          done
       - run: bun run test:e2e --project=chromium --grep="@a11y"
         working-directory: apps/playground
 
@@ -131,17 +147,26 @@ jobs:
       - name: Build packages
         shell: bash
         run: |
-          while IFS= read -r dir; do
-            [ -z "$dir" ] && continue
+          workspaces=(
+            "packages/core"
+            "packages/react"
+            "packages/theme"
+            "packages/renderers"
+            "packages/web-component"
+          )
+          for dir in "${workspaces[@]}"; do
             (cd "$dir" && bun run build)
-          done <<< "$BUILD_WORKSPACES"
+          done
       - name: Build Storybook
         shell: bash
         run: |
-          while IFS= read -r dir; do
-            [ -z "$dir" ] && continue
+          workspaces=(
+            "packages/react"
+            "packages/web-component"
+          )
+          for dir in "${workspaces[@]}"; do
             (cd "$dir" && bun run build-storybook)
-          done <<< "$STORYBOOK_WORKSPACES"
+          done
 
   e2e:
     name: E2E Tests (Playwright)
@@ -154,10 +179,16 @@ jobs:
       - name: Build packages
         shell: bash
         run: |
-          while IFS= read -r dir; do
-            [ -z "$dir" ] && continue
+          workspaces=(
+            "packages/core"
+            "packages/react"
+            "packages/theme"
+            "packages/renderers"
+            "packages/web-component"
+          )
+          for dir in "${workspaces[@]}"; do
             (cd "$dir" && bun run build)
-          done <<< "$BUILD_WORKSPACES"
+          done
       - name: Install Playwright browsers
         run: bunx playwright install --with-deps chromium firefox webkit
       - run: bun run test:e2e
