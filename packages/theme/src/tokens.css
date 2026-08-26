@@ -1,4 +1,281 @@
+/**
+ * PageFlip Design Tokens
+ *
+ * Single source of truth for all design values.
+ * Supports light/dark themes via [data-theme] attribute.
+ * @packageDocumentation
+ */
+
 :root {
-  --pageflip-color-background: #ffffff;
-  --pageflip-color-foreground: #111111;
+	/* ========== Colors - Light Theme ========== */
+	/* Base */
+	--pf-color-bg: #ffffff;
+	--pf-color-bg-secondary: #f8f9fa;
+	--pf-color-bg-tertiary: #e9ecef;
+	--pf-color-bg-hover: #e2e8f0;
+	--pf-color-bg-active: #cbd5e1;
+
+	/* Text */
+	--pf-color-text: #1a1a2e;
+	--pf-color-text-secondary: #495057;
+	--pf-color-text-muted: #6c757d;
+	--pf-color-text-inverse: #ffffff;
+	--pf-color-text-link: #3b82f6;
+	--pf-color-text-link-hover: #2563eb;
+
+	/* Primary */
+	--pf-color-primary: #3b82f6;
+	--pf-color-primary-hover: #2563eb;
+	--pf-color-primary-active: #1d4ed8;
+	--pf-color-primary-light: #dbeafe;
+	--pf-color-primary-focus: rgba(59, 130, 246, 0.4);
+
+	/* Border */
+	--pf-color-border: #e2e8f0;
+	--pf-color-border-strong: #cbd5e1;
+	--pf-color-border-focus: #3b82f6;
+
+	/* Shadows */
+	--pf-color-shadow: rgba(0, 0, 0, 0.1);
+	--pf-color-shadow-strong: rgba(0, 0, 0, 0.15);
+	--pf-color-shadow-focus: rgba(59, 130, 246, 0.4);
+
+	/* Overlay */
+	--pf-color-overlay: rgba(0, 0, 0, 0.5);
+	--pf-color-overlay-strong: rgba(0, 0, 0, 0.7);
+
+	/* Semantic */
+	--pf-color-success: #22c55e;
+	--pf-color-success-light: #dcfce7;
+	--pf-color-warning: #f59e0b;
+	--pf-color-warning-light: #fef3c7;
+	--pf-color-error: #ef4444;
+	--pf-color-error-light: #fef2f2;
+	--pf-color-info: #3b82f6;
+	--pf-color-info-light: #dbeafe;
+
+	/* ========== Page Flip Specific ========== */
+	--pf-page-corner-size: 48px;
+	--pf-page-corner-color: var(--pf-color-primary);
+	--pf-page-corner-bg: var(--pf-color-bg);
+	--pf-page-corner-border: var(--pf-color-border);
+	--pf-page-corner-shadow: var(--pf-color-shadow);
+	--pf-page-fold-shadow: var(--pf-color-shadow-strong);
+	--pf-page-edge-gradient: linear-gradient(
+		90deg,
+		transparent,
+		var(--pf-color-border)
+	);
+	--pf-toolbar-height: 56px;
+	--pf-toolbar-bg: var(--pf-color-bg);
+	--pf-toolbar-border: var(--pf-color-border);
+	--pf-page-indicator-gap: 8px;
+	--pf-page-indicator-size: 8px;
+	--pf-page-indicator-color: var(--pf-color-text-muted);
+	--pf-page-indicator-active-color: var(--pf-color-primary);
+	--pf-zoom-btn-size: 40px;
+	--pf-fullscreen-btn-size: 40px;
+
+	/* ========== Spacing ========== */
+	--pf-space-0: 0;
+	--pf-space-xs: 0.25rem; /* 4px */
+	--pf-space-sm: 0.5rem; /* 8px */
+	--pf-space-md: 1rem; /* 16px */
+	--pf-space-lg: 1.5rem; /* 24px */
+	--pf-space-xl: 2rem; /* 32px */
+	--pf-space-2xl: 3rem; /* 48px */
+	--pf-space-3xl: 4rem; /* 64px */
+
+	/* ========== Border Radius ========== */
+	--pf-radius-none: 0;
+	--pf-radius-sm: 0.25rem; /* 4px */
+	--pf-radius-md: 0.5rem; /* 8px */
+	--pf-radius-lg: 0.75rem; /* 12px */
+	--pf-radius-xl: 1rem; /* 16px */
+	--pf-radius-2xl: 1.5rem; /* 24px */
+	--pf-radius-full: 9999px;
+
+	/* ========== Shadows ========== */
+	--pf-shadow-xs: 0 1px 1px var(--pf-color-shadow);
+	--pf-shadow-sm: 0 1px 2px var(--pf-color-shadow);
+	--pf-shadow-md: 0 4px 6px var(--pf-color-shadow);
+	--pf-shadow-lg: 0 10px 15px var(--pf-color-shadow);
+	--pf-shadow-xl: 0 20px 25px var(--pf-color-shadow);
+	--pf-shadow-2xl: 0 25px 50px var(--pf-color-shadow);
+	--pf-shadow-flip: 0 20px 40px var(--pf-color-shadow-strong);
+	--pf-shadow-focus: 0 0 0 3px var(--pf-color-shadow-focus);
+	--pf-shadow-inset: inset 0 2px 4px var(--pf-color-shadow);
+
+	/* ========== Transitions ========== */
+	--pf-transition-fast: 100ms ease;
+	--pf-transition-base: 200ms ease;
+	--pf-transition-slow: 300ms ease;
+	--pf-transition-flip: 1000ms cubic-bezier(0.4, 0, 0.2, 1);
+
+	/* ========== Z-Index ========== */
+	--pf-z-base: 0;
+	--pf-z-dropdown: 100;
+	--pf-z-sticky: 200;
+	--pf-z-modal-backdrop: 300;
+	--pf-z-modal: 400;
+	--pf-z-popover: 500;
+	--pf-z-tooltip: 600;
+	--pf-z-toast: 700;
+	--pf-z-page-flip: 1000;
+
+	/* ========== Typography ========== */
+	--pf-font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+		Roboto, "Helvetica Neue", Arial, sans-serif;
+	--pf-font-mono: ui-monospace, SFMono-Regular, "Fira Code", "Fira Mono", Menlo,
+		Consolas, monospace;
+	--pf-text-xs: 0.75rem; /* 12px */
+	--pf-text-sm: 0.875rem; /* 14px */
+	--pf-text-base: 1rem; /* 16px */
+	--pf-text-lg: 1.125rem; /* 18px */
+	--pf-text-xl: 1.25rem; /* 20px */
+	--pf-text-2xl: 1.5rem; /* 24px */
+	--pf-text-3xl: 1.875rem; /* 30px */
+	--pf-font-normal: 400;
+	--pf-font-medium: 500;
+	--pf-font-semibold: 600;
+	--pf-font-bold: 700;
+	--pf-leading-tight: 1.25;
+	--pf-leading-normal: 1.5;
+	--pf-leading-relaxed: 1.75;
+
+	/* ========== Breakpoints (for container queries) ========== */
+	--pf-breakpoint-sm: 480px;
+	--pf-breakpoint-md: 768px;
+	--pf-breakpoint-lg: 1024px;
+	--pf-breakpoint-xl: 1280px;
+	--pf-breakpoint-2xl: 1536px;
+
+	/* ========== Animation ========== */
+	--pf-animation-duration-fast: 150ms;
+	--pf-animation-duration-normal: 250ms;
+	--pf-animation-duration-slow: 350ms;
+	--pf-animation-easing: ease-out;
+}
+
+/* ========== Dark Theme ========== */
+[data-theme="dark"] {
+	/* Base */
+	--pf-color-bg: #0f0f1a;
+	--pf-color-bg-secondary: #1a1a2e;
+	--pf-color-bg-tertiary: #252542;
+	--pf-color-bg-hover: #2d2d4a;
+	--pf-color-bg-active: #3d3d5c;
+
+	/* Text */
+	--pf-color-text: #f1f5f9;
+	--pf-color-text-secondary: #cbd5e1;
+	--pf-color-text-muted: #94a3b8;
+	--pf-color-text-inverse: #0f0f1a;
+	--pf-color-text-link: #60a5fa;
+	--pf-color-text-link-hover: #93c5fd;
+
+	/* Primary */
+	--pf-color-primary: #60a5fa;
+	--pf-color-primary-hover: #93c5fd;
+	--pf-color-primary-active: #3b82f6;
+	--pf-color-primary-light: #1e3a5f;
+	--pf-color-primary-focus: rgba(96, 165, 250, 0.4);
+
+	/* Border */
+	--pf-color-border: #334155;
+	--pf-color-border-strong: #475569;
+	--pf-color-border-focus: #60a5fa;
+
+	/* Shadows */
+	--pf-color-shadow: rgba(0, 0, 0, 0.3);
+	--pf-color-shadow-strong: rgba(0, 0, 0, 0.5);
+	--pf-color-shadow-focus: rgba(96, 165, 250, 0.4);
+
+	/* Overlay */
+	--pf-color-overlay: rgba(0, 0, 0, 0.7);
+	--pf-color-overlay-strong: rgba(0, 0, 0, 0.85);
+
+	/* Semantic */
+	--pf-color-success: #4ade80;
+	--pf-color-success-light: #064e3b;
+	--pf-color-warning: #fbbf24;
+	--pf-color-warning-light: #451a03;
+	--pf-color-error: #f87171;
+	--pf-color-error-light: #450a0a;
+	--pf-color-info: #60a5fa;
+	--pf-color-info-light: #1e3a5f;
+
+	/* Page Flip Specific */
+	--pf-toolbar-bg: var(--pf-color-bg-secondary);
+	--pf-page-corner-bg: var(--pf-color-bg-secondary);
+	--pf-page-corner-border: var(--pf-color-border);
+}
+
+/* ========== Reduced Motion ========== */
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		--pf-transition-fast: 0ms;
+		--pf-transition-base: 0ms;
+		--pf-transition-slow: 0ms;
+		--pf-transition-flip: 0ms;
+		--pf-animation-duration-fast: 0ms;
+		--pf-animation-duration-normal: 0ms;
+		--pf-animation-duration-slow: 0ms;
+	}
+}
+
+/* ========== High Contrast ========== */
+@media (prefers-contrast: high) {
+	:root {
+		--pf-color-border: var(--pf-color-text);
+		--pf-color-border-strong: var(--pf-color-text);
+		--pf-page-corner-border: var(--pf-color-text);
+		--pf-toolbar-border: var(--pf-color-text);
+		--pf-color-shadow-focus: var(--pf-color-primary);
+	}
+}
+
+/* ========== Focus Visible ========== */
+:root {
+	--pf-focus-ring: 0 0 0 3px var(--pf-color-shadow-focus);
+}
+
+*:focus-visible {
+	outline: none;
+	box-shadow: var(--pf-focus-ring);
+}
+
+/* ========== Selection ========== */
+::selection {
+	background-color: var(--pf-color-primary-light);
+	color: var(--pf-color-text);
+}
+
+[data-theme="dark"] ::selection {
+	background-color: var(--pf-color-primary-light);
+	color: var(--pf-color-text-inverse);
+}
+
+/* ========== Scrollbar ========== */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--pf-color-border) transparent;
+}
+
+*::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+	background-color: var(--pf-color-border);
+	border-radius: var(--pf-radius-full);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+	background-color: var(--pf-color-border-strong);
 }
