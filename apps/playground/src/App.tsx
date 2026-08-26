@@ -151,6 +151,7 @@ export const App: React.FC = () => {
 		null,
 	);
 	const mainControls = usePageFlipControls(mainInstance);
+	const mainState = usePageFlipState(mainInstance);
 
 	const toggleTheme = useCallback(() => {
 		setTheme((currentTheme) => {
@@ -206,37 +207,66 @@ export const App: React.FC = () => {
 					</h2>
 
 					<div
-						className="book-container"
-						style={{
-							height: "600px",
-							maxWidth: "100%",
-							width: layout === "stretch" ? "100%" : "800px",
-						}}
+						data-testid="pageflip-book"
+						data-current-page={mainState.currentPage}
+						data-total-pages={mainState.pageCount}
 					>
-						<PageFlip
-							drawShadow
-							flippingTime={1000}
-							height={600}
-							maxShadowOpacity={0.5}
-							onFlip={(event) =>
-								console.log("Flipped to page", event.pageIndex)
-							}
-							onInit={(instance) => {
-								console.log("PageFlip initialized", instance);
-								setMainInstance(instance);
+						<div
+							className="book-container"
+							style={{
+								height: "600px",
+								maxWidth: "100%",
+								width: layout === "stretch" ? "100%" : "800px",
 							}}
-							ref={setMainInstance}
-							showCover
-							showPageCorners
-							size={layout}
-							width={800}
 						>
-							{DEMO_PAGES.map((page) => (
-								<div className="page-wrapper" key={page.id}>
-									{page.content}
-								</div>
-							))}
-						</PageFlip>
+							<PageFlip
+								drawShadow
+								flippingTime={1000}
+								height={600}
+								maxShadowOpacity={0.5}
+								onFlip={(event) =>
+									console.log("Flipped to page", event.pageIndex)
+								}
+								onInit={(instance) => {
+									console.log("PageFlip initialized", instance);
+									setMainInstance(instance);
+								}}
+								ref={setMainInstance}
+								showCover
+								showPageCorners
+								size={layout}
+								width={800}
+							>
+								{DEMO_PAGES.map((page) => (
+									<div className="page-wrapper" key={page.id}>
+										{page.content}
+									</div>
+								))}
+							</PageFlip>
+						</div>
+						<div className="controls-row" style={{ marginTop: "1rem" }}>
+							<button
+								className="btn"
+								data-testid="prev-page-btn"
+								disabled={mainState.currentPage === 0}
+								onClick={() => void mainControls.prev()}
+								type="button"
+							>
+								Prev
+							</button>
+							<span className="page-info">
+								{mainState.currentPage + 1} / {Math.max(mainState.pageCount, 1)}
+							</span>
+							<button
+								className="btn"
+								data-testid="next-page-btn"
+								disabled={mainState.currentPage >= mainState.pageCount - 1}
+								onClick={() => void mainControls.next()}
+								type="button"
+							>
+								Next
+							</button>
+						</div>
 					</div>
 				</section>
 
