@@ -6,6 +6,7 @@
  */
 
 import {
+	DEFAULT_MAX_SHADOW_OPACITY,
 	DEFAULT_PAGE_CORNER_SIZE,
 	DEFAULT_SWIPE_DISTANCE,
 	EVENT_NAMES,
@@ -18,6 +19,10 @@ import { LayoutCalculator } from "../layout/LayoutCalculator";
 import type { LayoutResult } from "../layout/LayoutCalculator";
 import { OrientationManager } from "../layout/OrientationManager";
 import { PluginManager } from "../plugins/PluginManager";
+import {
+	Canvas2DRenderer,
+	type Canvas2DRendererConfig,
+} from "../renderers/Canvas2DRenderer";
 import { RendererFactory } from "../renderers/RendererFactory";
 import type {
 	FlipCorner,
@@ -33,24 +38,16 @@ import type {
 	PageSource,
 	Rect,
 	RenderPage,
+	RendererOptions,
 	StateChangeEvent,
 } from "../types";
-import {
-	calculateFoldAngle,
-	calculateFoldCurve,
-	calculateFoldProgress,
-} from "./bezier";
+import { calculateFoldAngle, calculateFoldProgress } from "./bezier";
 import {
 	DEFAULT_CONFIG,
 	createHtmlPages,
 	createImagePages,
 	createSourcePages,
 } from "./flipEngineShared";
-import {
-	calculateCreaseShadow,
-	calculatePageEdgeShadow,
-	calculateShadowParams,
-} from "./shadow";
 
 /**
  * FlipEngine runtime.
@@ -115,11 +112,15 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 		this.config = { ...DEFAULT_CONFIG, ...config };
 		this.canvas = this.createCanvas();
 		this.container.appendChild(this.canvas);
+
 		this.layoutCalculator = new LayoutCalculator();
 		this.orientationManager = new OrientationManager(this.layoutCalculator);
-		this.orientationManager.setPortraitPreference(this.config.usePortrait);
+		this.orientationManager.setPortraitPreference(
+			this.config.usePortrait ?? true,
+		);
+
 		this.inputManager = new InputManager({
-			pageRect: this.currentLayout?.pageRect ?? {
+			pageRect: {
 				x: 0,
 				y: 0,
 				width: this.config.width,
@@ -133,6 +134,8 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 			enableWheelZoom: this.config.renderer !== "canvas2d",
 			enableHorizontalScroll: true,
 		});
+
+		void this.initRenderer();
 		this.bindEvents();
 		this.bindInputEvents();
 		this.calculateLayout();
@@ -140,7 +143,7 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 			this.container.getBoundingClientRect(),
 			this.config,
 		);
-		void this.initialize();
+		void PluginManager.applyAll(this);
 		this.emitInit();
 	}
 
@@ -219,7 +222,39 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 		this.inputManager.setConfig({
 			enableWheelZoom: this.config.renderer !== "canvas2d",
 		});
-		await this.initializeRenderer();
+		this.runtime.renderer?.destroy();
+
+		const rendererOptions: RendererOptions = {
+			contextAttributes: this.config.rendererOptions?.contextAttributes,
+		};
+
+		this.runtime.renderer = await RendererFactory.create(
+			rendererId,
+			this.canvas,
+			rendererOptions,
+		);
+
+		if (this.runtime.renderer instanceof Canvas2DRenderer) {
+			this.runtime.renderer.setConfig({
+				highDPI: true,
+				drawShadow: this.config.drawShadow ?? true,
+				maxShadowOpacity:
+					this.config.maxShadowOpacity ?? DEFAULT_MAX_SHADOW_OPACITY,
+				showPageCorners: this.config.showPageCorners ?? true,
+				cornerSize: DEFAULT_PAGE_CORNER_SIZE,
+				backgroundColor: "transparent",
+			});
+		}
+
+		if (this.currentLayout) {
+			const dpr = window.devicePixelRatio || 1;
+			this.runtime.renderer.resize(
+				this.currentLayout.pageRect.width,
+				this.currentLayout.pageRect.height,
+				dpr,
+			);
+		}
+
 		this.render();
 	}
 	/** Get current renderer. */
@@ -254,6 +289,14 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 			swipeDistance: this.config.swipeDistance ?? DEFAULT_SWIPE_DISTANCE,
 			enableWheelZoom: this.config.renderer !== "canvas2d",
 		});
+		if (this.runtime.renderer instanceof Canvas2DRenderer) {
+			this.runtime.renderer.setConfig({
+				drawShadow: this.config.drawShadow ?? true,
+				maxShadowOpacity:
+					this.config.maxShadowOpacity ?? DEFAULT_MAX_SHADOW_OPACITY,
+				showPageCorners: this.config.showPageCorners ?? true,
+			});
+		}
 		this.calculateLayout();
 		void this.orientationManager.updateOrientation(
 			this.container.getBoundingClientRect(),
@@ -278,21 +321,44 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 		canvas.style.display = "block";
 		return canvas;
 	}
-	/** Initialize renderer and plugins. */
-	private async initialize(): Promise<void> {
-		await this.initializeRenderer();
-		await PluginManager.applyAll(this);
-		this.render();
-	}
-	/** Initialize the active renderer. */
-	private async initializeRenderer(): Promise<void> {
+	/** Initialize renderer via factory. */
+	private async initRenderer(): Promise<void> {
 		this.runtime.renderer?.destroy();
+
+		const rendererOptions: RendererOptions = {
+			contextAttributes: this.config.rendererOptions?.contextAttributes,
+		};
+
+		const rendererConfig: Canvas2DRendererConfig = {
+			highDPI: true,
+			drawShadow: this.config.drawShadow ?? true,
+			maxShadowOpacity:
+				this.config.maxShadowOpacity ?? DEFAULT_MAX_SHADOW_OPACITY,
+			showPageCorners: this.config.showPageCorners ?? true,
+			cornerSize: DEFAULT_PAGE_CORNER_SIZE,
+			backgroundColor: "transparent",
+		};
+
 		this.runtime.renderer = await RendererFactory.create(
-			this.config.renderer,
+			this.config.renderer ?? "auto",
 			this.canvas,
-			this.config.rendererOptions,
+			rendererOptions,
 		);
-		this.resizeCanvas();
+
+		if (this.runtime.renderer instanceof Canvas2DRenderer) {
+			this.runtime.renderer.setConfig(rendererConfig);
+		}
+
+		if (this.currentLayout) {
+			const dpr = window.devicePixelRatio || 1;
+			this.runtime.renderer.resize(
+				this.currentLayout.pageRect.width,
+				this.currentLayout.pageRect.height,
+				dpr,
+			);
+		}
+
+		this.render();
 	}
 	/** Bind all DOM events. */
 	private bindEvents(): void {
@@ -422,11 +488,8 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 						if (progress > 0.1) {
 							this.setState("fold_corner");
 						}
-						this.renderFrame(
-							progress,
-							event.corner,
-							this.runtime.flipDirection,
-						);
+						this.runtime.flipCorner = event.corner;
+						this.renderFrame(progress);
 					}
 					break;
 				case "dragEnd":
@@ -473,32 +536,25 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 	}
 	/** Calculate layout using the layout calculator. */
 	private calculateLayout(): void {
+		const containerRect = this.container.getBoundingClientRect();
 		this.currentLayout = this.layoutCalculator.calculate(
-			this.container.getBoundingClientRect(),
+			containerRect,
 			this.config,
 		);
 		this.runtime.bounds = this.currentLayout.pageRect;
 		this.runtime.orientation = this.currentLayout.orientation;
+
 		this.inputManager.setPageRect(this.currentLayout.pageRect);
-		this.resizeCanvas();
-	}
-	/** Resize canvas backing store. */
-	private resizeCanvas(): void {
-		if (!this.currentLayout) {
-			return;
-		}
+
 		const dpr = window.devicePixelRatio || 1;
-		this.canvas.width = this.currentLayout.pageRect.width * dpr;
-		this.canvas.height = this.currentLayout.pageRect.height * dpr;
 		this.runtime.renderer?.resize(
 			this.currentLayout.pageRect.width,
 			this.currentLayout.pageRect.height,
 			dpr,
 		);
-	}
-	/** Get the current page rectangle. */
-	private getCurrentPageRect(): Rect {
-		return this.currentLayout?.pageRect ?? this.runtime.bounds;
+
+		this.canvas.width = this.currentLayout.pageRect.width * dpr;
+		this.canvas.height = this.currentLayout.pageRect.height * dpr;
 	}
 	/** Handle drag end (mouse up or touch end). */
 	private async handleDragEnd(event: InputEvent): Promise<void> {
@@ -561,10 +617,12 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 	}
 	/** Build pages for the renderer. */
 	private buildRenderPages(): RenderPage[] {
+		const pageRect = this.currentLayout?.pageRect ?? this.runtime.bounds;
+
 		return this.runtime.pages.map((page, index) => ({
 			index,
 			density: page.density,
-			rect: this.getCurrentPageRect(),
+			rect: pageRect,
 			content: page.content,
 			isFront: index <= this.runtime.pageIndex,
 			zIndex: index,
@@ -572,35 +630,24 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 	}
 	/** Render the current resting frame. */
 	private render(): void {
-		this.renderFrame(0, this.runtime.flipCorner, this.runtime.flipDirection);
+		this.renderFrame(0);
 	}
 	/** Render a specific frame. */
-	private renderFrame(
-		progress: number,
-		corner: FlipCorner,
-		direction: FlipDirection,
-	): void {
-		if (!this.runtime.renderer) {
+	private renderFrame(progress: number): void {
+		if (!this.runtime.renderer || !this.currentLayout) {
 			return;
 		}
-		const pageRect = this.getCurrentPageRect();
-		void calculateFoldCurve(pageRect, corner, progress, progress * 180);
-		void calculateShadowParams(
-			progress,
-			pageRect,
-			undefined,
-			this.config.maxShadowOpacity,
-		);
-		void calculateCreaseShadow(progress, pageRect);
-		void calculatePageEdgeShadow(pageRect, progress > 0, progress);
-		this.runtime.renderer.render({
+
+		const frame = {
 			pages: this.buildRenderPages(),
-			viewport: this.runtime.bounds,
+			viewport: this.currentLayout.pageRect,
 			dpr: window.devicePixelRatio || 1,
 			flipProgress: progress,
-			flipDirection: direction,
-			flipCorner: corner,
-		});
+			flipDirection: this.runtime.flipDirection,
+			flipCorner: this.runtime.flipCorner,
+		};
+
+		this.runtime.renderer.render(frame);
 	}
 	/** Replace all pages and optionally reset the active page. */
 	private replacePages(pages: PageData[], resetIndex = true): void {
@@ -681,11 +728,7 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 					progress < 0.5
 						? 4 * progress * progress * progress
 						: 1 - (-2 * progress + 2) ** 3 / 2;
-				this.renderFrame(
-					eased,
-					this.runtime.flipCorner,
-					this.runtime.flipDirection,
-				);
+				this.renderFrame(eased);
 				if (progress < 1) {
 					this.runtime.frameId = requestAnimationFrame(tick);
 					return;
