@@ -25,6 +25,71 @@ Monorepo for the PageFlip ecosystem.
 - shared constants from `packages/core/src/constants`
 - public types from `packages/core/src/types`
 
+## Renderer API
+
+`@pageflip/core` includes a Canvas 2D renderer and a renderer factory with automatic fallback selection.
+
+### `Canvas2DRenderer`
+
+```ts
+import { Canvas2DRenderer } from "@pageflip/core";
+
+const renderer = new Canvas2DRenderer({
+  highDPI: true,
+  drawShadow: true,
+  maxShadowOpacity: 0.35,
+  showPageCorners: true,
+  cornerSize: 48,
+  backgroundColor: "#ffffff",
+});
+
+await renderer.init(canvas, {
+  highDPI: true,
+  contextAttributes: { alpha: true },
+});
+
+renderer.resize(800, 600, window.devicePixelRatio || 1);
+renderer.render(frame);
+
+const config = renderer.getConfig();
+renderer.setConfig({ drawShadow: false, backgroundColor: "transparent" });
+
+renderer.destroy();
+```
+
+Config fields:
+
+- `highDPI`
+- `drawShadow`
+- `maxShadowOpacity`
+- `showPageCorners`
+- `cornerSize`
+- `backgroundColor`
+
+Capabilities:
+
+- `zoom: false`
+- `pan: false`
+- `hiDPI: true`
+- `supportsVideo: true`
+- `supportsPDF: false`
+- `supportsPBR: false`
+
+### `RendererFactory`
+
+```ts
+import { RendererFactory } from "@pageflip/core";
+
+const renderer = await RendererFactory.create("auto", canvas, {
+  highDPI: true,
+});
+
+const canvasRenderer = await RendererFactory.create("canvas2d", canvas);
+const capabilities = await RendererFactory.getCapabilities("canvas2d");
+```
+
+`RendererFactory.create("auto", ...)` tries available renderers in priority order and falls back to `canvas2d` when advanced APIs are unavailable.
+
 ## Input API
 
 `packages/core/src/input` includes pure handlers for unified input processing:
