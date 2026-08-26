@@ -9,6 +9,28 @@ on:
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  LINT_WORKSPACES: |
+    apps/benchmark
+    apps/docs
+    apps/playground
+    packages/core
+    packages/react
+    packages/renderers
+    packages/renderers/image
+    packages/renderers/pdf
+    packages/renderers/rtf
+    packages/renderers/video
+    packages/theme
+    packages/web-component
+  BUILD_WORKSPACES: |
+    packages/core
+    packages/react
+    packages/theme
+    packages/renderers
+    packages/web-component
+  STORYBOOK_WORKSPACES: |
+    packages/react
+    packages/web-component
 
 jobs:
   validate:
@@ -28,55 +50,26 @@ jobs:
       - name: Lint
         shell: bash
         run: |
-          for dir in \
-            apps/benchmark \
-            apps/docs \
-            apps/playground \
-            packages/core \
-            packages/react \
-            packages/renderers \
-            packages/renderers/image \
-            packages/renderers/pdf \
-            packages/renderers/rtf \
-            packages/renderers/video \
-            packages/theme \
-            packages/web-component
-          do
+          while IFS= read -r dir; do
+            [ -z "$dir" ] && continue
             (cd "$dir" && bun run lint)
-          done
+          done <<< "$LINT_WORKSPACES"
       - name: Typecheck
         shell: bash
         run: |
-          for dir in \
-            apps/benchmark \
-            apps/docs \
-            apps/playground \
-            packages/core \
-            packages/react \
-            packages/renderers \
-            packages/renderers/image \
-            packages/renderers/pdf \
-            packages/renderers/rtf \
-            packages/renderers/video \
-            packages/theme \
-            packages/web-component
-          do
+          while IFS= read -r dir; do
+            [ -z "$dir" ] && continue
             (cd "$dir" && bun run typecheck)
-          done
+          done <<< "$LINT_WORKSPACES"
       - name: Test (unit + coverage)
         run: bun run test:coverage
       - name: Build
         shell: bash
         run: |
-          for dir in \
-            packages/core \
-            packages/react \
-            packages/theme \
-            packages/renderers \
-            packages/web-component
-          do
+          while IFS= read -r dir; do
+            [ -z "$dir" ] && continue
             (cd "$dir" && bun run build)
-          done
+          done <<< "$BUILD_WORKSPACES"
       - name: React Doctor
         run: bun run doctor
         continue-on-error: true
@@ -120,15 +113,10 @@ jobs:
       - name: Build packages
         shell: bash
         run: |
-          for dir in \
-            packages/core \
-            packages/react \
-            packages/theme \
-            packages/renderers \
-            packages/web-component
-          do
+          while IFS= read -r dir; do
+            [ -z "$dir" ] && continue
             (cd "$dir" && bun run build)
-          done
+          done <<< "$BUILD_WORKSPACES"
       - run: bun run test:e2e --project=chromium --grep="@a11y"
         working-directory: apps/playground
 
@@ -143,24 +131,17 @@ jobs:
       - name: Build packages
         shell: bash
         run: |
-          for dir in \
-            packages/core \
-            packages/react \
-            packages/theme \
-            packages/renderers \
-            packages/web-component
-          do
+          while IFS= read -r dir; do
+            [ -z "$dir" ] && continue
             (cd "$dir" && bun run build)
-          done
+          done <<< "$BUILD_WORKSPACES"
       - name: Build Storybook
         shell: bash
         run: |
-          for dir in \
-            packages/react \
-            packages/web-component
-          do
+          while IFS= read -r dir; do
+            [ -z "$dir" ] && continue
             (cd "$dir" && bun run build-storybook)
-          done
+          done <<< "$STORYBOOK_WORKSPACES"
 
   e2e:
     name: E2E Tests (Playwright)
@@ -173,15 +154,10 @@ jobs:
       - name: Build packages
         shell: bash
         run: |
-          for dir in \
-            packages/core \
-            packages/react \
-            packages/theme \
-            packages/renderers \
-            packages/web-component
-          do
+          while IFS= read -r dir; do
+            [ -z "$dir" ] && continue
             (cd "$dir" && bun run build)
-          done
+          done <<< "$BUILD_WORKSPACES"
       - name: Install Playwright browsers
         run: bunx playwright install --with-deps chromium firefox webkit
       - run: bun run test:e2e
