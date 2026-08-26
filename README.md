@@ -25,6 +25,89 @@ Monorepo for the PageFlip ecosystem.
 - shared constants from `packages/core/src/constants`
 - public types from `packages/core/src/types`
 
+## Input API
+
+`packages/core/src/input` includes pure handlers for unified input processing:
+
+- `MouseHandler`
+- `TouchHandler`
+- `KeyboardHandler`
+- `WheelHandler`
+- `InputManager`
+
+### Basic usage
+
+```ts
+import {
+  InputManager,
+  KeyboardHandler,
+  MouseHandler,
+  TouchHandler,
+  WheelHandler,
+} from "./packages/core/src/input";
+
+const mouse = new MouseHandler();
+const touch = new TouchHandler();
+const keyboard = new KeyboardHandler();
+const wheel = new WheelHandler();
+
+const input = new InputManager({
+  pageRect: { x: 0, y: 0, width: 800, height: 600 },
+  cornerSize: 48,
+  clickToFlip: true,
+  swipeDistance: 30,
+  dragThreshold: 5,
+  enableKeyboard: true,
+  enableWheelZoom: true,
+  enableHorizontalScroll: true,
+});
+
+input.onInput((event) => {
+  if (event.type === "keyAction" && event.keyboardAction === "next") {
+    console.log("go to next page");
+  }
+});
+```
+
+### Mouse and touch helpers
+
+```ts
+const mouseResult = mouse.onMouseDown({ x: 12, y: 18 });
+const touchResult = touch.onTouchStart([{ x: 12, y: 18, identifier: 1 }]);
+
+if (mouseResult.corner || touchResult.corner) {
+  console.log("corner interaction started");
+}
+```
+
+### Keyboard shortcuts
+
+```ts
+const action = keyboard.getActionForKey("ArrowRight");
+
+if (action === "next") {
+  console.log("advance page");
+}
+```
+
+### Wheel interactions
+
+```ts
+const result = wheel.onWheel({
+  deltaX: 0,
+  deltaY: 24,
+  deltaMode: 0,
+  ctrlKey: true,
+  shiftKey: false,
+  metaKey: false,
+  preventDefault() {},
+} as WheelEvent);
+
+if (result.action === "zoom") {
+  console.log(result.zoomDelta);
+}
+```
+
 ### `FlipEngine`
 
 Constructor:

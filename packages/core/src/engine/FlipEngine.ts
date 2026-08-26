@@ -5,7 +5,14 @@
  * @packageDocumentation
  */
 
-import { EVENT_NAMES, KEYBOARD_SHORTCUTS } from "../constants";
+import {
+	DEFAULT_PAGE_CORNER_SIZE,
+	DEFAULT_SWIPE_DISTANCE,
+	EVENT_NAMES,
+} from "../constants";
+
+import { InputManager } from "../input/InputManager";
+import type { InputEvent, InputEventListener } from "../input/InputManager";
 
 import { LayoutCalculator } from "../layout/LayoutCalculator";
 import type { LayoutResult } from "../layout/LayoutCalculator";
@@ -24,7 +31,6 @@ import type {
 	PageFlipInstance,
 	PageOrientation,
 	PageSource,
-	Point,
 	Rect,
 	RenderPage,
 	StateChangeEvent,
@@ -56,20 +62,11 @@ type FlipRuntime = {
 	state: FlipState;
 	bounds: Rect;
 	renderer: IRenderer | null;
-	dragPoint: Point | null;
-	activeCorner: FlipCorner | null;
 	flipDirection: FlipDirection;
 	flipCorner: FlipCorner;
 	flipTargetPage: number;
 	frameId: number | null;
 };
-
-/**
- * Check whether a keyboard shortcut contains a pressed key.
- */
-function includesKey(keys: readonly string[], key: string): boolean {
-	return keys.includes(key);
-}
 
 /**
  * Core animation and state management.
@@ -89,8 +86,6 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 		state: "idle",
 		bounds: { x: 0, y: 0, width: 0, height: 0 },
 		renderer: null,
-		dragPoint: null,
-		activeCorner: null,
 		flipDirection: "next",
 		flipCorner: "top",
 		flipTargetPage: 0,
@@ -104,6 +99,10 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 	private readonly layoutCalculator: LayoutCalculator;
 	/** Orientation manager instance. */
 	private readonly orientationManager: OrientationManager;
+	/** Input manager for all user interactions. */
+	private inputManager: InputManager;
+	/** Input event unsubscribe. */
+	private inputUnsubscribe: (() => void) | null = null;
 	/** Current layout result. */
 	private currentLayout: LayoutResult | null = null;
 
@@ -119,7 +118,23 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 		this.layoutCalculator = new LayoutCalculator();
 		this.orientationManager = new OrientationManager(this.layoutCalculator);
 		this.orientationManager.setPortraitPreference(this.config.usePortrait);
+		this.inputManager = new InputManager({
+			pageRect: this.currentLayout?.pageRect ?? {
+				x: 0,
+				y: 0,
+				width: this.config.width,
+				height: this.config.height,
+			},
+			cornerSize: DEFAULT_PAGE_CORNER_SIZE,
+			clickToFlip: !this.config.disableFlipByClick,
+			swipeDistance: this.config.swipeDistance ?? DEFAULT_SWIPE_DISTANCE,
+			dragThreshold: 5,
+			enableKeyboard: true,
+			enableWheelZoom: this.config.renderer !== "canvas2d",
+			enableHorizontalScroll: true,
+		});
 		this.bindEvents();
+		this.bindInputEvents();
 		this.calculateLayout();
 		void this.orientationManager.updateOrientation(
 			this.container.getBoundingClientRect(),
@@ -201,6 +216,9 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 	/** Switch renderer at runtime. */
 	public async setRenderer(rendererId: "canvas2d" | "webgl"): Promise<void> {
 		this.config.renderer = rendererId;
+		this.inputManager.setConfig({
+			enableWheelZoom: this.config.renderer !== "canvas2d",
+		});
 		await this.initializeRenderer();
 		this.render();
 	}
@@ -216,10 +234,13 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 		if (this.runtime.frameId !== null) {
 			cancelAnimationFrame(this.runtime.frameId);
 		}
+		this.inputUnsubscribe?.();
+		this.inputManager.reset();
 		this.abortController.abort();
 		this.resizeObserver?.disconnect();
 		this.runtime.renderer?.destroy();
 		this.canvas.remove();
+		this.runtime.pages = [];
 	}
 	/** Update configuration. */
 	public updateConfig(config: Partial<PageFlipConfig>): void {
@@ -228,6 +249,11 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 		if (config.usePortrait !== undefined) {
 			this.orientationManager.setPortraitPreference(config.usePortrait);
 		}
+		this.inputManager.setConfig({
+			clickToFlip: !this.config.disableFlipByClick,
+			swipeDistance: this.config.swipeDistance ?? DEFAULT_SWIPE_DISTANCE,
+			enableWheelZoom: this.config.renderer !== "canvas2d",
+		});
 		this.calculateLayout();
 		void this.orientationManager.updateOrientation(
 			this.container.getBoundingClientRect(),
@@ -271,48 +297,175 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 	/** Bind all DOM events. */
 	private bindEvents(): void {
 		const signal = this.abortController.signal;
+		const toCanvasPoint = (clientX: number, clientY: number) => {
+			const rect = this.canvas.getBoundingClientRect();
+			return { x: clientX - rect.left, y: clientY - rect.top };
+		};
 		this.canvas.addEventListener(
 			"mousedown",
-			(event) => this.onPointerStart(event.clientX, event.clientY),
+			(event) =>
+				this.inputManager.onMouseDown(
+					toCanvasPoint(event.clientX, event.clientY),
+				),
 			{ signal },
 		);
 		this.canvas.addEventListener(
 			"mousemove",
-			(event) => this.onPointerMove(event.clientX, event.clientY),
+			(event) =>
+				this.inputManager.onMouseMove(
+					toCanvasPoint(event.clientX, event.clientY),
+				),
 			{ signal },
 		);
-		this.canvas.addEventListener("mouseup", () => this.onPointerEnd(), {
-			signal,
-		});
-		this.canvas.addEventListener("mouseleave", () => this.onPointerEnd(), {
-			signal,
-		});
 		this.canvas.addEventListener(
-			"click",
-			(event) => this.onClick(event.clientX, event.clientY),
+			"mouseup",
+			(event) => {
+				this.inputManager.onMouseMove(
+					toCanvasPoint(event.clientX, event.clientY),
+				);
+				this.inputManager.onMouseUp();
+			},
 			{ signal },
+		);
+		this.canvas.addEventListener(
+			"mouseleave",
+			() => this.inputManager.onMouseLeave(),
+			{
+				signal,
+			},
 		);
 		this.canvas.addEventListener(
 			"touchstart",
-			(event) => this.onTouchStart(event),
+			(event) =>
+				this.inputManager.onTouchStart(
+					Array.from(event.touches, (touch) => ({
+						...toCanvasPoint(touch.clientX, touch.clientY),
+						identifier: touch.identifier,
+					})),
+				),
 			{ passive: true, signal },
 		);
 		this.canvas.addEventListener(
 			"touchmove",
-			(event) => this.onTouchMove(event),
+			(event) => {
+				if (!this.config.mobileScrollSupport) {
+					event.preventDefault();
+				}
+				this.inputManager.onTouchMove(
+					Array.from(event.touches, (touch) => ({
+						...toCanvasPoint(touch.clientX, touch.clientY),
+						identifier: touch.identifier,
+					})),
+				);
+			},
 			{ passive: false, signal },
 		);
-		this.canvas.addEventListener("touchend", () => this.onPointerEnd(), {
-			signal,
-		});
-		this.canvas.addEventListener("keydown", (event) => this.onKeyDown(event), {
-			signal,
-		});
+		this.canvas.addEventListener(
+			"touchend",
+			(event) =>
+				this.inputManager.onTouchEnd(
+					Array.from(event.changedTouches, (touch) => ({
+						...toCanvasPoint(touch.clientX, touch.clientY),
+						identifier: touch.identifier,
+					})),
+				),
+			{ signal },
+		);
+		this.canvas.addEventListener(
+			"touchcancel",
+			() => this.inputManager.onTouchCancel(),
+			{
+				signal,
+			},
+		);
+		this.canvas.addEventListener(
+			"keydown",
+			(event) => this.inputManager.onKeyDown(event),
+			{
+				signal,
+			},
+		);
+		this.canvas.addEventListener(
+			"wheel",
+			(event) => this.inputManager.onWheel(event),
+			{
+				passive: false,
+				signal,
+			},
+		);
 		this.resizeObserver =
 			typeof ResizeObserver === "undefined"
 				? null
 				: new ResizeObserver(() => this.onResize());
 		this.resizeObserver?.observe(this.container);
+	}
+	/** Bind unified input events from InputManager. */
+	private bindInputEvents(): void {
+		const listener: InputEventListener = (event: InputEvent) => {
+			switch (event.type) {
+				case "dragStart":
+					if (event.corner && this.config.showPageCorners) {
+						this.runtime.flipCorner = event.corner;
+						this.setState("user_fold");
+					}
+					break;
+				case "dragMove":
+					if (event.corner && event.currentPoint) {
+						const pageRect =
+							this.currentLayout?.pageRect ?? this.runtime.bounds;
+						const angle = calculateFoldAngle(
+							pageRect,
+							event.corner,
+							event.currentPoint,
+						);
+						const progress = calculateFoldProgress(angle);
+						if (progress > 0.1) {
+							this.setState("fold_corner");
+						}
+						this.renderFrame(
+							progress,
+							event.corner,
+							this.runtime.flipDirection,
+						);
+					}
+					break;
+				case "dragEnd":
+					void this.handleDragEnd(event);
+					break;
+				case "click":
+					if (event.keyboardAction === "next") {
+						void this.flipNext();
+					} else if (event.keyboardAction === "prev") {
+						void this.flipPrev();
+					}
+					break;
+				case "swipe":
+					if (event.swipeDirection === "next") {
+						void this.flipNext();
+					} else if (event.swipeDirection === "prev") {
+						void this.flipPrev();
+					}
+					break;
+				case "keyAction":
+					if (event.keyboardAction) {
+						this.handleKeyAction(event.keyboardAction);
+					}
+					break;
+				case "wheelZoom":
+					break;
+				case "wheelScroll":
+					if (event.scrollDirection === "left") {
+						void this.flipNext();
+					} else if (event.scrollDirection === "right") {
+						void this.flipPrev();
+					}
+					break;
+				default:
+					break;
+			}
+		};
+
+		this.inputUnsubscribe = this.inputManager.onInput(listener);
 	}
 	/** Emit initialization event. */
 	private emitInit(): void {
@@ -326,6 +479,7 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 		);
 		this.runtime.bounds = this.currentLayout.pageRect;
 		this.runtime.orientation = this.currentLayout.orientation;
+		this.inputManager.setPageRect(this.currentLayout.pageRect);
 		this.resizeCanvas();
 	}
 	/** Resize canvas backing store. */
@@ -342,133 +496,54 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 			dpr,
 		);
 	}
-	/** Convert a client point into canvas coordinates. */
-	private getCanvasPoint(clientX: number, clientY: number): Point {
-		const rect = this.canvas.getBoundingClientRect();
-		return { x: clientX - rect.left, y: clientY - rect.top };
-	}
 	/** Get the current page rectangle. */
 	private getCurrentPageRect(): Rect {
 		return this.currentLayout?.pageRect ?? this.runtime.bounds;
 	}
-	/** Start drag interaction from a page corner. */
-	private startDrag(point: Point): void {
-		if (this.runtime.state !== "idle" || !this.config.showPageCorners) {
+	/** Handle drag end (mouse up or touch end). */
+	private async handleDragEnd(event: InputEvent): Promise<void> {
+		if (!event.corner || !this.currentLayout || !event.currentPoint) {
+			this.setState("read");
+			this.render();
 			return;
 		}
-		if (!this.currentLayout) {
-			return;
-		}
-		const corner = this.layoutCalculator.hitTestCorner(
-			point,
-			this.currentLayout.pageRect,
+
+		const pageRect = this.currentLayout.pageRect;
+		const angle = calculateFoldAngle(
+			pageRect,
+			event.corner,
+			event.currentPoint,
 		);
-		if (!corner) {
-			return;
-		}
-		this.runtime.dragPoint = point;
-		this.runtime.activeCorner =
-			corner === "top-left" || corner === "top-right" ? "top" : "bottom";
-		this.setState("user_fold");
-	}
-	/** Start pointer interaction. */
-	private onPointerStart(clientX: number, clientY: number): void {
-		this.startDrag(this.getCanvasPoint(clientX, clientY));
-	}
-	/** Update pointer interaction. */
-	private onPointerMove(clientX: number, clientY: number): void {
-		if (!this.runtime.activeCorner) {
-			return;
-		}
-		const point = this.getCanvasPoint(clientX, clientY);
-		this.runtime.dragPoint = point;
-		const progress = calculateFoldProgress(
-			calculateFoldAngle(
-				this.getCurrentPageRect(),
-				this.runtime.activeCorner,
-				point,
-			),
-		);
-		this.setState(progress > 0.1 ? "fold_corner" : "user_fold");
-		this.renderFrame(
-			progress,
-			this.runtime.activeCorner,
-			this.runtime.flipDirection,
-		);
-	}
-	/** End pointer interaction. */
-	private onPointerEnd(): void {
-		if (!this.runtime.activeCorner || !this.runtime.dragPoint) {
-			return;
-		}
-		const corner = this.runtime.activeCorner;
-		const progress = calculateFoldProgress(
-			calculateFoldAngle(
-				this.getCurrentPageRect(),
-				corner,
-				this.runtime.dragPoint,
-			),
-		);
-		this.runtime.activeCorner = null;
-		this.runtime.dragPoint = null;
+		const progress = calculateFoldProgress(angle);
+
 		if (progress > 0.5) {
-			void this.runFlip(this.runtime.pageIndex + 1, corner);
+			await this.runFlip(this.runtime.pageIndex + 1, event.corner);
 			return;
 		}
+
 		this.setState("read");
 		this.render();
 	}
-	/** Handle click interactions. */
-	private handleClick(point: Point): void {
-		if (!this.currentLayout) {
-			return;
-		}
-		const isRightSide =
-			point.x >
-			this.currentLayout.pageRect.x + this.currentLayout.pageRect.width / 2;
-		void (isRightSide ? this.flipNext() : this.flipPrev());
-	}
-	/** Handle click interactions. */
-	private onClick(clientX: number, clientY: number): void {
-		if (this.config.disableFlipByClick || this.runtime.state !== "idle") {
-			return;
-		}
-		this.handleClick(this.getCanvasPoint(clientX, clientY));
-	}
-	/** Handle touch start. */
-	private onTouchStart(event: TouchEvent): void {
-		const touch = event.touches.item(0);
-		if (touch) {
-			this.onPointerStart(touch.clientX, touch.clientY);
-		}
-	}
-	/** Handle touch move. */
-	private onTouchMove(event: TouchEvent): void {
-		if (!this.config.mobileScrollSupport) {
-			event.preventDefault();
-		}
-		const touch = event.touches.item(0);
-		if (touch) {
-			this.onPointerMove(touch.clientX, touch.clientY);
-		}
-	}
-	/** Handle keyboard interactions. */
-	private onKeyDown(event: KeyboardEvent): void {
-		if (includesKey(KEYBOARD_SHORTCUTS.NEXT, event.key)) {
-			event.preventDefault();
-			void this.flipNext();
-		}
-		if (includesKey(KEYBOARD_SHORTCUTS.PREV, event.key)) {
-			event.preventDefault();
-			void this.flipPrev();
-		}
-		if (includesKey(KEYBOARD_SHORTCUTS.FIRST, event.key)) {
-			event.preventDefault();
-			void this.turnToPage(0);
-		}
-		if (includesKey(KEYBOARD_SHORTCUTS.LAST, event.key)) {
-			event.preventDefault();
-			void this.turnToPage(this.pageCount - 1);
+	/** Handle keyboard actions. */
+	private handleKeyAction(action: string): void {
+		switch (action) {
+			case "next":
+				void this.flipNext();
+				return;
+			case "prev":
+				void this.flipPrev();
+				return;
+			case "first":
+				void this.turnToPage(0);
+				return;
+			case "last":
+				void this.turnToPage(this.pageCount - 1);
+				return;
+			case "zoomIn":
+			case "zoomOut":
+			case "zoomReset":
+			case "fullscreen":
+				return;
 		}
 	}
 	/** Handle resize updates. */
