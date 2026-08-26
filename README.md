@@ -1,6 +1,6 @@
 # PageFlip
 
-Monorepo base for PageFlip.
+Monorepo for the PageFlip ecosystem.
 
 ## Workspace layout
 
@@ -14,16 +14,50 @@ Monorepo base for PageFlip.
 - `packages/web-component`
 - `tools/*`
 
-## Included foundation
+## Core API
 
-- Bun workspaces
-- Turborepo pipeline
-- Biome and ESLint
-- Husky and Commitlint
-- Changesets
-- GitHub Actions workflows
-- Governance and contribution policies
+`@pageflip/core` exports:
 
-## Status
+- `FlipEngine`
+- `RendererFactory`
+- `PluginManager`
+- engine math helpers from `packages/core/src/engine`
+- shared constants from `packages/core/src/constants`
+- public types from `packages/core/src/types`
 
-Foundation only.
+### `FlipEngine`
+
+Constructor:
+
+```ts
+const engine = new FlipEngine(container, {
+  width: 800,
+  height: 600,
+});
+```
+
+Main methods:
+
+- `flipNext(corner?)`
+- `flipPrev(corner?)`
+- `flip(pageIndex, corner?)`
+- `turnToPage(pageIndex)`
+- `turnToNextPage()`
+- `turnToPrevPage()`
+- `loadFromHtml(elements)`
+- `loadFromImages(urls)`
+- `loadFromSources(sources)`
+- `updateFromHtml(elements)`
+- `updateFromImages(urls)`
+- `setRenderer(rendererId)`
+- `getRenderer()`
+- `updateConfig(config)`
+- `destroy()`
+
+State getters:
+
+- `pageCount`
+- `currentPageIndex`
+- `orientation`
+- `state`
+- `bounds`
