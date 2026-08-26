@@ -17,6 +17,7 @@ import {
 	useEffect,
 	useMemo,
 	useRef,
+	useState,
 } from "react";
 
 /**
@@ -69,20 +70,19 @@ export const PageFlipProvider: React.FC<PageFlipProviderProps> = ({
 	instance,
 	children,
 }) => {
-	const controlsRef = useRef<PageFlipControls | null>(null);
-	const stateRef = useRef<PageFlipState | null>(null);
+	const [controls, setControls] = useState<PageFlipControls | null>(null);
+	const [state, setState] = useState<PageFlipState | null>(null);
 	const childrenRef = useRef<Map<string, ReactNode>>(new Map());
 
 	// Subscribe to instance events
 	useEffect(() => {
 		if (!instance) {
-			controlsRef.current = null;
-			stateRef.current = null;
+			setControls(null);
+			setState(null);
 			return;
 		}
 
-		// Update controls
-		controlsRef.current = {
+		const nextControls: PageFlipControls = {
 			next: () => instance.flipNext(),
 			prev: () => instance.flipPrev(),
 			goTo: (page: number) => instance.turnToPage(page),
@@ -94,16 +94,17 @@ export const PageFlipProvider: React.FC<PageFlipProviderProps> = ({
 			getState: () => instance.state,
 		};
 
-		// Update state
+		setControls(nextControls);
+
 		const updateState = () => {
-			stateRef.current = {
+			setState({
 				currentPage: instance.currentPageIndex,
 				pageCount: instance.pageCount,
 				orientation: instance.orientation,
 				state: instance.state,
 				isFlipping: instance.state === "flipping",
 				bounds: instance.bounds,
-			};
+			});
 		};
 
 		updateState();
@@ -145,8 +146,8 @@ export const PageFlipProvider: React.FC<PageFlipProviderProps> = ({
 	const value = useMemo<PageFlipContextValue>(
 		() => ({
 			instance,
-			controls: controlsRef.current,
-			state: stateRef.current,
+			controls,
+			state,
 			registerChild: (id: string, child: ReactNode) => {
 				childrenRef.current.set(id, child);
 			},
@@ -154,7 +155,7 @@ export const PageFlipProvider: React.FC<PageFlipProviderProps> = ({
 				childrenRef.current.delete(id);
 			},
 		}),
-		[instance],
+		[controls, instance, state],
 	);
 
 	return (
