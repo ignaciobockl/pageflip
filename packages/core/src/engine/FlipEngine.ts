@@ -18,6 +18,8 @@ import type { InputEvent, InputEventListener } from "../input/InputManager";
 import { LayoutCalculator } from "../layout/LayoutCalculator";
 import type { LayoutResult } from "../layout/LayoutCalculator";
 import { OrientationManager } from "../layout/OrientationManager";
+import { PageManager } from "../page/PageManager";
+import type { PageManagerConfig } from "../page/PageManager";
 import { PluginManager } from "../plugins/PluginManager";
 import {
 	Canvas2DRenderer,
@@ -31,30 +33,21 @@ import type {
 	FlipState,
 	IRenderer,
 	OrientationChangeEvent,
-	PageData,
 	PageFlipConfig,
 	PageFlipInstance,
 	PageOrientation,
 	PageSource,
 	Rect,
-	RenderPage,
 	RendererOptions,
 	StateChangeEvent,
 } from "../types";
 import { calculateFoldAngle, calculateFoldProgress } from "./bezier";
-import {
-	DEFAULT_CONFIG,
-	createHtmlPages,
-	createImagePages,
-	createSourcePages,
-} from "./flipEngineShared";
+import { DEFAULT_CONFIG } from "./flipEngineShared";
 
 /**
  * FlipEngine runtime.
  */
 type FlipRuntime = {
-	pages: PageData[];
-	pageIndex: number;
 	orientation: PageOrientation;
 	state: FlipState;
 	bounds: Rect;
@@ -77,8 +70,6 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 	private readonly abortController = new AbortController();
 	/** Engine runtime. */
 	private readonly runtime: FlipRuntime = {
-		pages: [],
-		pageIndex: 0,
 		orientation: "portrait",
 		state: "idle",
 		bounds: { x: 0, y: 0, width: 0, height: 0 },
@@ -96,12 +87,16 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 	private readonly layoutCalculator: LayoutCalculator;
 	/** Orientation manager instance. */
 	private readonly orientationManager: OrientationManager;
+	/** Page manager for lifecycle and caching. */
+	private pageManager: PageManager;
 	/** Input manager for all user interactions. */
 	private inputManager: InputManager;
 	/** Input event unsubscribe. */
 	private inputUnsubscribe: (() => void) | null = null;
 	/** Current layout result. */
 	private currentLayout: LayoutResult | null = null;
+	/** Current page index. */
+	private _currentPageIndex = 0;
 
 	/**
 	 * Create a new FlipEngine instance.
@@ -118,6 +113,16 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 		this.orientationManager.setPortraitPreference(
 			this.config.usePortrait ?? true,
 		);
+
+		const pageManagerConfig: PageManagerConfig = {
+			maxCacheSize: 50,
+			lazyLoad: true,
+			preloadAdjacent: true,
+			imageLoadTimeout: 10000,
+			monitorMemory: true,
+		};
+		this.pageManager = new PageManager(pageManagerConfig);
+		this.pageManager.onMemoryPressure(() => this.handleMemoryPressure());
 
 		this.inputManager = new InputManager({
 			pageRect: {
@@ -149,11 +154,11 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 
 	/** Current page count. */
 	public get pageCount(): number {
-		return this.runtime.pages.length;
+		return this.pageManager.getPageCount();
 	}
 	/** Current page index. */
 	public get currentPageIndex(): number {
-		return this.runtime.pageIndex;
+		return this._currentPageIndex;
 	}
 	/** Current orientation. */
 	public get orientation(): PageOrientation {
@@ -170,11 +175,11 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 
 	/** Animate to next page. */
 	public async flipNext(corner: FlipCorner = "top"): Promise<void> {
-		await this.flip(this.runtime.pageIndex + 1, corner);
+		await this.flip(this.currentPageIndex + 1, corner);
 	}
 	/** Animate to previous page. */
 	public async flipPrev(corner: FlipCorner = "bottom"): Promise<void> {
-		await this.flip(this.runtime.pageIndex - 1, corner);
+		await this.flip(this.currentPageIndex - 1, corner);
 	}
 	/** Animate to a specific page. */
 	public async flip(pageIndex: number, corner?: FlipCorner): Promise<void> {
@@ -182,39 +187,84 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 	}
 	/** Jump to page without animation. */
 	public async turnToPage(pageIndex: number): Promise<void> {
-		if (pageIndex >= 0 && pageIndex < this.pageCount) {
-			this.runtime.pageIndex = pageIndex;
-			this.render();
-			this.emitUpdate();
+		if (pageIndex < 0 || pageIndex >= this.pageCount) {
+			return;
 		}
+
+		this._currentPageIndex = pageIndex;
+		this.pageManager.setCurrentPage(pageIndex);
+		await this.pageManager.ensurePageLoaded(pageIndex);
+		this.render();
+		this.emitUpdate();
 	}
 	/** Jump to next page. */
 	public async turnToNextPage(): Promise<void> {
-		await this.turnToPage(this.runtime.pageIndex + 1);
+		await this.turnToPage(this.currentPageIndex + 1);
 	}
 	/** Jump to previous page. */
 	public async turnToPrevPage(): Promise<void> {
-		await this.turnToPage(this.runtime.pageIndex - 1);
+		await this.turnToPage(this.currentPageIndex - 1);
 	}
 	/** Load pages from HTML elements. */
 	public async loadFromHtml(elements: HTMLElement[]): Promise<void> {
-		this.replacePages(createHtmlPages(elements));
+		const pages = await this.pageManager.loadFromHtml(elements);
+		this._currentPageIndex = 0;
+		this.pageManager.setCurrentPage(0);
+		if (pages.length > 0) {
+			await this.pageManager.ensurePageLoaded(0);
+		}
+		this.render();
+		this.emitUpdate();
 	}
 	/** Load pages from image URLs. */
 	public async loadFromImages(urls: string[]): Promise<void> {
-		this.replacePages(createImagePages(urls));
+		const pages = await this.pageManager.loadFromImages(urls);
+		this._currentPageIndex = 0;
+		this.pageManager.setCurrentPage(0);
+		if (pages.length > 0) {
+			await this.pageManager.ensurePageLoaded(0);
+		}
+		this.render();
+		this.emitUpdate();
 	}
 	/** Load pages from mixed sources. */
 	public async loadFromSources(sources: PageSource[]): Promise<void> {
-		this.replacePages(createSourcePages(sources));
+		const pages = await this.pageManager.loadFromSources(sources);
+		this._currentPageIndex = 0;
+		this.pageManager.setCurrentPage(0);
+		if (pages.length > 0) {
+			await this.pageManager.ensurePageLoaded(0);
+		}
+		this.render();
+		this.emitUpdate();
 	}
 	/** Update pages from HTML elements. */
 	public async updateFromHtml(elements: HTMLElement[]): Promise<void> {
-		this.replacePages(createHtmlPages(elements), false);
+		const pages = await this.pageManager.updateFromHtml(elements);
+		this._currentPageIndex = Math.min(
+			this._currentPageIndex,
+			Math.max(pages.length - 1, 0),
+		);
+		this.pageManager.setCurrentPage(this._currentPageIndex);
+		if (pages.length > 0) {
+			await this.pageManager.ensurePageLoaded(this._currentPageIndex);
+		}
+		this.render();
+		this.emitUpdate();
 	}
 	/** Update pages from image URLs. */
 	public async updateFromImages(urls: string[]): Promise<void> {
-		this.replacePages(createImagePages(urls), false);
+		const pages = await this.pageManager.updateFromImages(urls);
+		this._currentPageIndex = Math.min(
+			this._currentPageIndex,
+			Math.max(pages.length - 1, 0),
+		);
+		this.pageManager.setCurrentPage(this._currentPageIndex);
+		if (pages.length > 0) {
+			await this.pageManager.ensurePageLoaded(this._currentPageIndex);
+		}
+		this.render();
+		this.emitUpdate();
 	}
 	/** Switch renderer at runtime. */
 	public async setRenderer(rendererId: "canvas2d" | "webgl"): Promise<void> {
@@ -271,11 +321,11 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 		}
 		this.inputUnsubscribe?.();
 		this.inputManager.reset();
+		this.pageManager.destroy();
 		this.abortController.abort();
 		this.resizeObserver?.disconnect();
 		this.runtime.renderer?.destroy();
 		this.canvas.remove();
-		this.runtime.pages = [];
 	}
 	/** Update configuration. */
 	public updateConfig(config: Partial<PageFlipConfig>): void {
@@ -288,6 +338,11 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 			clickToFlip: !this.config.disableFlipByClick,
 			swipeDistance: this.config.swipeDistance ?? DEFAULT_SWIPE_DISTANCE,
 			enableWheelZoom: this.config.renderer !== "canvas2d",
+		});
+		this.pageManager.setConfig({
+			maxCacheSize: 50,
+			lazyLoad: true,
+			preloadAdjacent: true,
 		});
 		if (this.runtime.renderer instanceof Canvas2DRenderer) {
 			this.runtime.renderer.setConfig({
@@ -559,8 +614,6 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 	/** Handle drag end (mouse up or touch end). */
 	private async handleDragEnd(event: InputEvent): Promise<void> {
 		if (!event.corner || !this.currentLayout || !event.currentPoint) {
-			this.setState("read");
-			this.render();
 			return;
 		}
 
@@ -573,7 +626,17 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 		const progress = calculateFoldProgress(angle);
 
 		if (progress > 0.5) {
-			await this.runFlip(this.runtime.pageIndex + 1, event.corner);
+			if (this.currentPageIndex + 1 >= this.pageCount) {
+				this.setState("read");
+				this.render();
+				return;
+			}
+
+			this.runtime.flipDirection = "next";
+			this.runtime.flipCorner = event.corner;
+			this.runtime.flipTargetPage = this.currentPageIndex + 1;
+			this.setState("flipping");
+			await this.animateFlip(event.corner);
 			return;
 		}
 
@@ -616,15 +679,20 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 		this.emitUpdate();
 	}
 	/** Build pages for the renderer. */
-	private buildRenderPages(): RenderPage[] {
-		const pageRect = this.currentLayout?.pageRect ?? this.runtime.bounds;
+	private buildRenderPages(): import("../types").RenderPage[] {
+		const pageRect = this.currentLayout?.pageRect;
+		if (!pageRect) {
+			return [];
+		}
 
-		return this.runtime.pages.map((page, index) => ({
+		const pages = this.pageManager.getAllPages();
+
+		return pages.map((page, index) => ({
 			index,
 			density: page.density,
 			rect: pageRect,
 			content: page.content,
-			isFront: index <= this.runtime.pageIndex,
+			isFront: index <= this.currentPageIndex,
 			zIndex: index,
 		}));
 	}
@@ -648,15 +716,6 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 		};
 
 		this.runtime.renderer.render(frame);
-	}
-	/** Replace all pages and optionally reset the active page. */
-	private replacePages(pages: PageData[], resetIndex = true): void {
-		this.runtime.pages = pages;
-		this.runtime.pageIndex = resetIndex
-			? 0
-			: Math.min(this.runtime.pageIndex, Math.max(pages.length - 1, 0));
-		this.render();
-		this.emitUpdate();
 	}
 	/** Update the engine state and emit events. */
 	private setState(state: FlipState): void {
@@ -684,7 +743,7 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 		this.dispatchEvent(
 			new CustomEvent(EVENT_NAMES.FLIP, {
 				detail: {
-					pageIndex: this.runtime.pageIndex,
+					pageIndex: this.currentPageIndex,
 					direction: this.runtime.flipDirection,
 					corner: this.runtime.flipCorner,
 					timestamp: Date.now(),
@@ -710,16 +769,22 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 			this.runtime.renderer === null ||
 			pageIndex < 0 ||
 			pageIndex >= this.pageCount ||
-			pageIndex === this.runtime.pageIndex
+			pageIndex === this.currentPageIndex
 		) {
 			return;
 		}
 		this.runtime.flipDirection =
-			pageIndex > this.runtime.pageIndex ? "next" : "prev";
+			pageIndex > this.currentPageIndex ? "next" : "prev";
 		this.runtime.flipCorner =
 			corner ?? (this.runtime.flipDirection === "next" ? "top" : "bottom");
 		this.runtime.flipTargetPage = pageIndex;
 		this.setState("flipping");
+		await this.pageManager.ensurePageLoaded(pageIndex);
+		await this.animateFlip(this.runtime.flipCorner);
+	}
+	/** Animate the current flip transition. */
+	private async animateFlip(corner: FlipCorner): Promise<void> {
+		this.runtime.flipCorner = corner;
 		const start = performance.now();
 		await new Promise<void>((resolve) => {
 			const tick = (time: number) => {
@@ -733,13 +798,24 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 					this.runtime.frameId = requestAnimationFrame(tick);
 					return;
 				}
-				this.runtime.pageIndex = this.runtime.flipTargetPage;
-				this.setState("read");
-				this.render();
-				this.emitFlip();
+				this.completeFlip();
 				resolve();
 			};
 			this.runtime.frameId = requestAnimationFrame(tick);
+		});
+	}
+	/** Complete the current flip transition. */
+	private completeFlip(): void {
+		this._currentPageIndex = this.runtime.flipTargetPage;
+		this.pageManager.setCurrentPage(this._currentPageIndex);
+		this.setState("read");
+		this.render();
+		this.emitFlip();
+	}
+	/** Handle page manager memory pressure updates. */
+	private handleMemoryPressure(): void {
+		void this.pageManager.ensurePageLoaded(this._currentPageIndex).then(() => {
+			this.render();
 		});
 	}
 }
