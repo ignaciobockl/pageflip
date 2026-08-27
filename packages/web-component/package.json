@@ -1,6 +1,6 @@
 {
 	"name": "@pageflip/web-component",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"description": "Web Component wrapper for PageFlip",
 	"type": "module",
 	"main": "./dist/index.js",
@@ -34,7 +34,9 @@
 		"type": "git",
 		"url": "https://github.com/ignaciobockl/pageflip.git"
 	},
-	"bugs": { "url": "https://github.com/ignaciobockl/pageflip/issues" },
+	"bugs": {
+		"url": "https://github.com/ignaciobockl/pageflip/issues"
+	},
 	"homepage": "https://pageflip.dev",
 	"keywords": ["pageflip", "web-components", "renderer"],
 	"devDependencies": {

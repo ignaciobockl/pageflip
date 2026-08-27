@@ -1,6 +1,6 @@
 {
 	"name": "@pageflip/core",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"description": "Core page flip engine - renderer agnostic, Canvas 2D, zero dependencies",
 	"type": "module",
 	"main": "./dist/index.js",

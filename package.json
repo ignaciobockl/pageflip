@@ -68,7 +68,7 @@
 	"trustedDependencies": ["@biomejs/biome", "@playwright/test", "husky"],
 	"packageManager": "bun@1.1.29",
 	"lint-staged": {
-		"*.{ts,tsx,js,jsx,json,css,md}": [
+		"*.{ts,tsx,js,jsx,json,css}": [
 			"biome check --write --files-ignore-unknown=true"
 		]
 	}
