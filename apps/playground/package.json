@@ -1,13 +1,46 @@
 {
-  "name": "@pageflip/playground",
-  "version": "0.0.0",
-  "private": true,
-  "scripts": {
-    "dev": "bun -e \"console.log('playground placeholder')\"",
-    "build": "bun -e \"console.log('playground build placeholder')\"",
-    "lint": "bun -e \"console.log('playground lint placeholder')\"",
-    "lint:fix": "bun -e \"console.log('playground lint fix placeholder')\"",
-    "typecheck": "bun -e \"console.log('playground typecheck placeholder')\"",
-    "test:e2e": "bun -e \"console.log('playground e2e placeholder')\""
-  }
+	"name": "@pageflip/playground",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"preview": "vite preview",
+		"lint": "biome check . && bunx eslint . --ext .ts,.tsx",
+		"lint:fix": "biome check --write . && bunx eslint . --ext .ts,.tsx --fix",
+		"typecheck": "tsc --noEmit",
+		"test": "bun test",
+		"test:coverage": "bun test --coverage",
+		"test:e2e": "playwright test",
+		"test:e2e:ui": "playwright test --ui",
+		"storybook": "storybook dev -p 6006",
+		"build-storybook": "storybook build"
+	},
+	"dependencies": {
+		"@pageflip/core": "workspace:*",
+		"@pageflip/react": "workspace:*",
+		"@pageflip/theme": "workspace:*",
+		"react": "18.3.0",
+		"react-dom": "18.3.0"
+	},
+	"devDependencies": {
+		"@pageflip/tsconfig": "workspace:*",
+		"@pageflip/biome-config": "workspace:*",
+		"@pageflip/eslint-config": "workspace:*",
+		"@playwright/test": "1.48.0",
+		"@storybook/addon-essentials": "8.4.0",
+		"@storybook/addon-interactions": "8.4.0",
+		"@storybook/addon-links": "8.4.0",
+		"@storybook/blocks": "8.4.0",
+		"@storybook/react": "8.4.0",
+		"@storybook/react-vite": "8.4.0",
+		"@storybook/test": "8.4.0",
+		"@types/react": "18.3.0",
+		"@types/react-dom": "18.3.0",
+		"storybook": "8.4.0",
+		"typescript": "5.6.3",
+		"vite": "5.4.0",
+		"@vitejs/plugin-react": "4.3.0"
+	}
 }
