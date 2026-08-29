@@ -1,6 +1,6 @@
 {
 	"name": "@pageflip/core",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Core page flip engine - renderer agnostic, Canvas 2D, zero dependencies",
 	"type": "module",
 	"main": "./dist/index.js",
@@ -28,7 +28,9 @@
 	},
 	"author": "Ignacio Bockl",
 	"license": "MIT",
-	"publishConfig": { "access": "public" },
+	"publishConfig": {
+		"access": "public"
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/ignaciobockl/pageflip.git"

@@ -1,5 +1,14 @@
 # @pageflip/playground
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @pageflip/core@0.1.1
+  - @pageflip/react@0.1.1
+  - @pageflip/theme@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes
