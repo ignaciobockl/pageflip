@@ -93,38 +93,12 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 				ref={ref}
 				data-testid={testId}
 				className={`${toolbarVariants({ position })} ${className || ""}`}
-				style={{
-					position: "absolute",
-					[position]: 0,
-					left: 0,
-					right: 0,
-					height: "var(--pf-toolbar-height)",
-					display: "flex",
-					alignItems: "center",
-					justifyContent: "space-between",
-					padding: "0 var(--pf-space-md)",
-					backgroundColor: "var(--pf-toolbar-bg)",
-					borderTop:
-						position === "bottom"
-							? "1px solid var(--pf-toolbar-border)"
-							: "none",
-					borderBottom:
-						position === "top" ? "1px solid var(--pf-toolbar-border)" : "none",
-					zIndex: "var(--pf-z-dropdown)",
-					...style,
-				}}
+				style={style}
 				role="toolbar"
 				aria-label="Page navigation"
 			>
 				{/* Left: First/Prev */}
-				<div
-					className={toolbarSectionVariants({ align: "start" })}
-					style={{
-						display: "flex",
-						alignItems: "center",
-						gap: "var(--pf-space-xs)",
-					}}
-				>
+				<div className={toolbarSectionVariants({ align: "start" })}>
 					<button
 						type="button"
 						onClick={handleFirst}
@@ -132,20 +106,6 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 						className={toolbarButtonVariants({
 							state: isFirstPage ? "disabled" : undefined,
 						})}
-						style={{
-							width: "var(--pf-zoom-btn-size)",
-							height: "var(--pf-zoom-btn-size)",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							border: "none",
-							background: "transparent",
-							color: "var(--pf-color-text)",
-							borderRadius: "var(--pf-radius-md)",
-							cursor: isFirstPage ? "not-allowed" : "pointer",
-							opacity: isFirstPage ? 0.4 : 1,
-							transition: "opacity var(--pf-transition-fast)",
-						}}
 						aria-label="First page"
 						aria-disabled={isFirstPage}
 						data-testid="first-page-btn"
@@ -170,20 +130,6 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 						className={toolbarButtonVariants({
 							state: isFirstPage ? "disabled" : undefined,
 						})}
-						style={{
-							width: "var(--pf-zoom-btn-size)",
-							height: "var(--pf-zoom-btn-size)",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							border: "none",
-							background: "transparent",
-							color: "var(--pf-color-text)",
-							borderRadius: "var(--pf-radius-md)",
-							cursor: isFirstPage ? "not-allowed" : "pointer",
-							opacity: isFirstPage ? 0.4 : 1,
-							transition: "opacity var(--pf-transition-fast)",
-						}}
 						aria-label="Previous page"
 						aria-disabled={isFirstPage}
 						data-testid="prev-page-btn"
@@ -206,13 +152,6 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 				{showPageIndicator && (
 					<div
 						className={`${toolbarSectionVariants({ align: "center" })} pf-page-indicator`}
-						style={{
-							display: "flex",
-							alignItems: "center",
-							gap: "var(--pf-page-indicator-gap)",
-							flex: 1,
-							justifyContent: "center",
-						}}
 						aria-label="Page indicator"
 						data-testid="page-indicator"
 					>
@@ -220,23 +159,10 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 							renderPageIndicator(currentPage, pageCount)
 						) : (
 							<>
-								<span
-									style={{
-										fontSize: "var(--pf-text-sm)",
-										color: "var(--pf-color-text-muted)",
-										minWidth: "4rem",
-										textAlign: "center",
-									}}
-								>
+								<span className="pf-toolbar__page-text">
 									{currentPage + 1} / {pageCount}
 								</span>
-								<div
-									style={{
-										display: "flex",
-										gap: "var(--pf-page-indicator-gap)",
-									}}
-									aria-label="Pages"
-								>
+								<div className="pf-toolbar__page-dots" aria-label="Pages">
 									{Array.from(
 										{ length: Math.min(pageCount, 10) },
 										(_, index) => index + 1,
@@ -253,23 +179,6 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 															? "muted"
 															: undefined,
 											})}
-											style={{
-												width: "var(--pf-page-indicator-hit-area)",
-												height: "var(--pf-page-indicator-hit-area)",
-												padding: "8px",
-												boxSizing: "border-box",
-												backgroundClip: "content-box",
-												borderRadius: "var(--pf-radius-full)",
-												border: "none",
-												backgroundColor:
-													pageNumber - 1 === currentPage
-														? "var(--pf-page-indicator-active-color)"
-														: "var(--pf-page-indicator-color)",
-												cursor: "pointer",
-												transition:
-													"background-color var(--pf-transition-fast), transform var(--pf-transition-fast)",
-												opacity: pageCount > 10 && pageNumber >= 9 ? 0.5 : 1,
-											}}
 											aria-label={`Go to page ${pageNumber}`}
 											aria-current={
 												pageNumber - 1 === currentPage ? "page" : undefined
@@ -278,15 +187,7 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 										/>
 									))}
 									{pageCount > 10 && (
-										<span
-											style={{
-												fontSize: "var(--pf-text-xs)",
-												color: "var(--pf-color-text-muted)",
-												alignSelf: "center",
-											}}
-										>
-											…
-										</span>
+										<span className="pf-toolbar__ellipsis">…</span>
 									)}
 								</div>
 							</>
@@ -295,14 +196,7 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 				)}
 
 				{/* Right: Next/Last */}
-				<div
-					className={toolbarSectionVariants({ align: "end" })}
-					style={{
-						display: "flex",
-						alignItems: "center",
-						gap: "var(--pf-space-xs)",
-					}}
-				>
+				<div className={toolbarSectionVariants({ align: "end" })}>
 					<button
 						type="button"
 						onClick={handleNext}
@@ -310,20 +204,6 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 						className={toolbarButtonVariants({
 							state: isLastPage ? "disabled" : undefined,
 						})}
-						style={{
-							width: "var(--pf-zoom-btn-size)",
-							height: "var(--pf-zoom-btn-size)",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							border: "none",
-							background: "transparent",
-							color: "var(--pf-color-text)",
-							borderRadius: "var(--pf-radius-md)",
-							cursor: isLastPage ? "not-allowed" : "pointer",
-							opacity: isLastPage ? 0.4 : 1,
-							transition: "opacity var(--pf-transition-fast)",
-						}}
 						aria-label="Next page"
 						aria-disabled={isLastPage}
 						data-testid="next-page-btn"
@@ -347,20 +227,6 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 						className={toolbarButtonVariants({
 							state: isLastPage ? "disabled" : undefined,
 						})}
-						style={{
-							width: "var(--pf-zoom-btn-size)",
-							height: "var(--pf-zoom-btn-size)",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							border: "none",
-							background: "transparent",
-							color: "var(--pf-color-text)",
-							borderRadius: "var(--pf-radius-md)",
-							cursor: isLastPage ? "not-allowed" : "pointer",
-							opacity: isLastPage ? 0.4 : 1,
-							transition: "opacity var(--pf-transition-fast)",
-						}}
 						aria-label="Last page"
 						aria-disabled={isLastPage}
 						data-testid="last-page-btn"

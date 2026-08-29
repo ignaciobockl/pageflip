@@ -280,3 +280,100 @@
 *::-webkit-scrollbar-thumb:hover {
 	background-color: var(--pf-color-border-strong);
 }
+
+.pf-toolbar {
+	position: absolute;
+	left: 0;
+	right: 0;
+	height: var(--pf-toolbar-height);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 var(--pf-space-md);
+	background-color: var(--pf-toolbar-bg);
+	z-index: var(--pf-z-dropdown);
+}
+
+.pf-toolbar--top {
+	top: 0;
+	border-bottom: 1px solid var(--pf-toolbar-border);
+}
+
+.pf-toolbar--bottom {
+	bottom: 0;
+	border-top: 1px solid var(--pf-toolbar-border);
+}
+
+.pf-toolbar__section {
+	display: flex;
+	align-items: center;
+	gap: var(--pf-space-xs);
+}
+
+.pf-toolbar__center {
+	flex: 1;
+	justify-content: center;
+	gap: var(--pf-page-indicator-gap);
+}
+
+.pf-toolbar__page-text {
+	font-size: var(--pf-text-sm);
+	color: var(--pf-color-text-muted);
+	min-width: 4rem;
+	text-align: center;
+}
+
+.pf-toolbar__page-dots {
+	display: flex;
+	gap: var(--pf-page-indicator-gap);
+}
+
+.pf-toolbar__ellipsis {
+	font-size: var(--pf-text-xs);
+	color: var(--pf-color-text-muted);
+	align-self: center;
+}
+
+.pf-toolbar .pf-btn {
+	width: var(--pf-zoom-btn-size);
+	height: var(--pf-zoom-btn-size);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: none;
+	background: transparent;
+	color: var(--pf-color-text);
+	border-radius: var(--pf-radius-md);
+	cursor: pointer;
+	opacity: 1;
+	transition: opacity var(--pf-transition-fast), background-color
+		var(--pf-transition-fast);
+}
+
+.pf-toolbar .pf-btn--disabled,
+.pf-toolbar .pf-btn:disabled {
+	cursor: not-allowed;
+	opacity: 0.4;
+}
+
+.pf-toolbar .pf-page-indicator__dot {
+	width: var(--pf-page-indicator-hit-area);
+	height: var(--pf-page-indicator-hit-area);
+	padding: 8px;
+	box-sizing: border-box;
+	background-clip: content-box;
+	border-radius: var(--pf-radius-full);
+	border: none;
+	background-color: var(--pf-page-indicator-color);
+	cursor: pointer;
+	transition: background-color var(--pf-transition-fast), transform
+		var(--pf-transition-fast);
+}
+
+.pf-toolbar .pf-page-indicator__dot--active {
+	background-color: var(--pf-page-indicator-active-color);
+}
+
+.pf-toolbar .pf-page-indicator__dot--muted {
+	opacity: 0.5;
+}
