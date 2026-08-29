@@ -104,8 +104,11 @@ export const PageIndicator: React.FC<PageIndicatorProps> = ({
 							onClick={() => onPageClick(0)}
 							className="pf-page-indicator__dot"
 							style={{
-								width: "var(--pf-page-indicator-size)",
-								height: "var(--pf-page-indicator-size)",
+								width: "var(--pf-page-indicator-hit-area)",
+								height: "var(--pf-page-indicator-hit-area)",
+								padding: "8px",
+								boxSizing: "border-box",
+								backgroundClip: "content-box",
 								borderRadius: "var(--pf-radius-full)",
 								border: "none",
 								backgroundColor:
@@ -139,8 +142,11 @@ export const PageIndicator: React.FC<PageIndicatorProps> = ({
 							onClick={() => onPageClick(pageIndex)}
 							className={`pf-page-indicator__dot ${pageIndex === current ? "pf-page-indicator__dot--active" : ""}`}
 							style={{
-								width: "var(--pf-page-indicator-size)",
-								height: "var(--pf-page-indicator-size)",
+								width: "var(--pf-page-indicator-hit-area)",
+								height: "var(--pf-page-indicator-hit-area)",
+								padding: "8px",
+								boxSizing: "border-box",
+								backgroundClip: "content-box",
 								borderRadius: "var(--pf-radius-full)",
 								border: "none",
 								backgroundColor:
@@ -173,8 +179,11 @@ export const PageIndicator: React.FC<PageIndicatorProps> = ({
 								onClick={() => onPageClick(total - 1)}
 								className="pf-page-indicator__dot"
 								style={{
-									width: "var(--pf-page-indicator-size)",
-									height: "var(--pf-page-indicator-size)",
+									width: "var(--pf-page-indicator-hit-area)",
+									height: "var(--pf-page-indicator-hit-area)",
+									padding: "8px",
+									boxSizing: "border-box",
+									backgroundClip: "content-box",
 									borderRadius: "var(--pf-radius-full)",
 									border: "none",
 									backgroundColor:

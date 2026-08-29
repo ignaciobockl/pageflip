@@ -237,8 +237,11 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 											onClick={() => controls.goTo(pageNumber - 1)}
 											className={`pf-page-indicator__dot ${pageNumber - 1 === currentPage ? "pf-page-indicator__dot--active" : ""}`}
 											style={{
-												width: "var(--pf-page-indicator-size)",
-												height: "var(--pf-page-indicator-size)",
+												width: "var(--pf-page-indicator-hit-area)",
+												height: "var(--pf-page-indicator-hit-area)",
+												padding: "8px",
+												boxSizing: "border-box",
+												backgroundClip: "content-box",
 												borderRadius: "var(--pf-radius-full)",
 												border: "none",
 												backgroundColor:
