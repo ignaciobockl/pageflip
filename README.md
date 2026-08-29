@@ -1,627 +1,137 @@
+[![npm version](https://img.shields.io/npm/v/%40pageflip%2Freact?label=npm)](https://www.npmjs.com/package/@pageflip/react)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/ignaciobockl/pageflip/ci.yml?branch=main&label=CI)](https://github.com/ignaciobockl/pageflip/actions)
+[![WCAG](https://img.shields.io/badge/WCAG-2.1%20AA-ready-5B21B6)](https://www.w3.org/WAI/standards-guidelines/wcag/)
+
 # PageFlip
 
-Monorepo for the PageFlip ecosystem.
+PageFlip is a modern page-turning library for building flip books, catalogs, magazines, comics, and document viewers with a polished reading experience.
 
-## Workspace layout
+It ships as a small ecosystem of packages: a renderer-agnostic core, a React wrapper, Web Components, and an optional theme layer for production-ready UI.
 
-- `apps/docs`
-- `apps/playground`
-- `apps/benchmark`
-- `packages/core`
-- `packages/react`
-- `packages/theme`
-- `packages/renderers`
-- `packages/web-component`
-- `tools/*`
+- Framework-friendly: React, Web Components, or low-level engine usage
+- TypeScript-first API surface
+- SSR-safe React integration
+- Accessible controls with keyboard-friendly interaction patterns
+- Built for modern docs, product catalogs, readers, and digital publications
 
-## Core API
+## Packages
 
-`@pageflip/core` exports:
+| Package | Install when you need | Install |
+| --- | --- | --- |
+| `@pageflip/react` | A React app with the easiest integration path | `npm install @pageflip/react` |
+| `@pageflip/web-component` | Framework-agnostic custom elements for any frontend stack | `npm install @pageflip/web-component` |
+| `@pageflip/core` | Low-level engine access, custom integrations, or advanced control | `npm install @pageflip/core` |
+| `@pageflip/theme` | Optional UI components, tokens, and styling primitives | `npm install @pageflip/theme` |
+| `@pageflip/renderers` | Renderer-focused or advanced rendering integrations | `npm install @pageflip/renderers` |
 
-- `FlipEngine`
-- `RendererFactory`
-- `PluginManager`
-- engine math helpers from `packages/core/src/engine`
-- shared constants from `packages/core/src/constants`
-- public types from `packages/core/src/types`
+## Quick Start
 
-## React API
+### React in 30 seconds
 
-`@pageflip/react` provides an SSR-safe React 18+ wrapper for the core engine.
+Install:
 
-### `PageFlip`
+```bash
+npm install @pageflip/react @pageflip/theme
+```
+
+Peer dependencies:
+
+```bash
+npm install react react-dom
+```
+
+Use:
 
 ```tsx
 import { PageFlip } from "@pageflip/react";
+import "@pageflip/theme/tokens.css";
 
-export function Book() {
+export function App() {
   return (
-    <PageFlip width={800} height={600} onFlip={(event) => console.log(event.pageIndex)}>
+    <PageFlip width={800} height={600} aria-label="Product catalog">
+      <div>Cover</div>
       <div>Page 1</div>
       <div>Page 2</div>
+      <div>Back cover</div>
     </PageFlip>
   );
 }
 ```
 
-Supports:
+Requirements:
 
-- `children`, `pages`, or `images` as page sources
-- forwarded refs to the `PageFlipInstance`
-- `onInit`, `onUpdate`, `onFlip`, `onChangeState`, `onChangeOrientation`, `onError`
+- `react >= 18.2.0`
+- `react-dom >= 18.2.0`
+- Node.js `18.18+`
 
-### Hooks
+### Web Components in 30 seconds
 
-```tsx
-import {
-  usePageFlip,
-  usePageFlipControls,
-  usePageFlipEvents,
-  usePageFlipState,
-} from "@pageflip/react";
+Install:
 
-export function BookWithHooks() {
-  const { instance, ref, loading, error, reload } = usePageFlip({
-    width: 800,
-    height: 600,
-    images: ["/pages/1.jpg", "/pages/2.jpg"],
-  });
-  const controls = usePageFlipControls(instance);
-  const state = usePageFlipState(instance);
-
-  usePageFlipEvents(instance, {
-    onFlip: (event) => console.log(event.pageIndex),
-  });
-
-  if (loading) {
-    return <p>Loading…</p>;
-  }
-
-  if (error) {
-    return <p>{error.message}</p>;
-  }
-
-  return (
-    <>
-      <div ref={ref} />
-      <button onClick={() => void controls.prev()}>Prev</button>
-      <button onClick={() => void controls.next()}>Next</button>
-      <button onClick={() => void reload()}>Reload</button>
-      <p>
-        {state.currentPage + 1} / {state.pageCount}
-      </p>
-    </>
-  );
-}
+```bash
+npm install @pageflip/web-component @pageflip/theme
 ```
 
-Available hooks:
-
-- `usePageFlip`
-- `usePageFlipControls`
-- `usePageFlipState`
-- `usePageFlipEvents`
-
-## Web Components API
-
-`@pageflip/web-component` provides framework-agnostic custom elements with Shadow DOM, named slots, and SSR-friendly markup.
-
-### Setup
-
-```ts
-import "@pageflip/web-component";
-```
-
-### `page-flip-book`
+Use:
 
 ```html
-<page-flip-book width="800" height="600" size="stretch" theme="dark" aria-label="Product catalog">
-	<div slot="pages">
-		<article>Page 1</article>
-		<article>Page 2</article>
-	</div>
-	<page-flip-toolbar slot="toolbar" position="bottom"></page-flip-toolbar>
-	<page-flip-corner slot="page-corner-top-right" corner="top-right"></page-flip-corner>
+<script type="module">
+  import "@pageflip/web-component";
+  import "@pageflip/theme/tokens.css";
+</script>
+
+<page-flip-book width="800" height="600" aria-label="Magazine preview">
+  <div slot="pages">
+    <article>Cover</article>
+    <article>Article 1</article>
+    <article>Article 2</article>
+    <article>Back cover</article>
+  </div>
 </page-flip-book>
 ```
 
-Supports:
-
-- attributes like `width`, `height`, `size`, `flipping-time`, `theme`, `renderer`
-- named slots: `pages`, `toolbar`, `page-corner-top-left`, `page-corner-top-right`, `page-corner-bottom-left`, `page-corner-bottom-right`
-- public methods: `flipNext`, `flipPrev`, `flip`, `turnToPage`, `turnToNextPage`, `turnToPrevPage`, `loadFromHtml`, `loadFromImages`, `loadFromSources`, `updateFromHtml`, `updateFromImages`, `setRenderer`, `updateConfig`, `destroy`
-- events: `init`, `flip`, `statechange`, `orientationchange`, `update`, `error`, `dragStart`, `dragMove`, `dragEnd`
-
-```ts
-const book = document.querySelector("page-flip-book");
-
-book?.addEventListener("flip", (event) => {
-	console.log((event as CustomEvent).detail.pageIndex);
-});
-
-await book?.flipNext();
-await book?.turnToPage(4);
-```
-
-### `page-flip-toolbar`
-
-```html
-<page-flip-toolbar slot="toolbar" position="top"></page-flip-toolbar>
-```
-
-Provides first/previous/next/last controls plus a synced page indicator.
-
-### `page-flip-page-indicator`
-
-```html
-<page-flip-page-indicator max-dots="8"></page-flip-page-indicator>
-<page-flip-page-indicator show-numbers="true"></page-flip-page-indicator>
-```
-
-Supports dot navigation or select-based navigation through `show-numbers`.
-
-### `page-flip-corner`
-
-```html
-<page-flip-corner slot="page-corner-bottom-right" corner="bottom-right"></page-flip-corner>
-```
-
-Supports drag gestures, keyboard activation, and corner positioning through the `corner` and `visible` attributes.
-
-### `page-flip-loading-spinner`
-
-```html
-<page-flip-loading-spinner size="lg" color="var(--pf-color-primary)"></page-flip-loading-spinner>
-```
-
-Supports `sm`, `md`, and `lg` sizes with accessible loading semantics.
-
-### SSR note
-
-Render the custom element markup on the server and hydrate on the client after importing `@pageflip/web-component`. Shadow DOM encapsulation and named slots remain stable for progressive enhancement.
-
-## Theme API
-
-`@pageflip/theme` provides CSS design tokens, a Tailwind v4 preset, and ready-to-use UI components for the React integration.
-
-### CSS tokens
-
-```tsx
-import "@pageflip/theme/tokens.css";
-```
-
-The package exposes variables such as:
-
-- `--pf-color-primary`
-- `--pf-color-bg`
-- `--pf-color-text`
-- `--pf-toolbar-height`
-- `--pf-page-indicator-size`
-- `--pf-zoom-btn-size`
-
-### Components
-
-```tsx
-import { PageFlip } from "@pageflip/react";
-import {
-	FullscreenToggle,
-	KeyboardShortcuts,
-	LoadingSpinner,
-	PageCorner,
-	PageFlipProvider,
-	PageIndicator,
-	Toolbar,
-	ZoomControls,
-} from "@pageflip/theme";
-
-export function ThemedBook() {
-	const controls = {
-		next: async () => {},
-		prev: async () => {},
-		goTo: async (_page: number) => {},
-		flipTo: async (_page: number, _corner?: "top" | "bottom") => {},
-		flipNext: async (_corner?: "top-right" | "bottom-right") => {},
-		flipPrev: async (_corner?: "top-left" | "bottom-left") => {},
-		getCurrentPage: () => 0,
-		getPageCount: () => 12,
-		getOrientation: () => "portrait" as const,
-		getState: () => "idle" as const,
-	};
-
-	return (
-		<div style={{ position: "relative" }}>
-			<PageFlip width={800} height={600} images={["/pages/1.jpg", "/pages/2.jpg"]} />
-			<Toolbar controls={controls} currentPage={0} pageCount={12} />
-			<ZoomControls
-				level={1}
-				onZoomIn={() => {}}
-				onZoomOut={() => {}}
-				onReset={() => {}}
-			/>
-			<FullscreenToggle isFullscreen={false} onToggle={() => {}} />
-			<PageIndicator current={0} total={12} onPageClick={() => {}} />
-			<PageCorner corner="top-right" />
-			<KeyboardShortcuts controls={controls} />
-			<LoadingSpinner />
-		</div>
-	);
-}
-```
-
-Available exports:
-
-- `Toolbar`
-- `PageIndicator`
-- `ZoomControls`
-- `FullscreenToggle`
-- `PageCorner`
-- `LoadingSpinner`
-- `KeyboardShortcuts`
-- `PageFlipProvider`
-- `usePageFlipContext`
-- `usePageFlipInstance`
-- `usePageFlipControls`
-- `usePageFlipState`
-
-### Provider
-
-```tsx
-import { PageFlip } from "@pageflip/react";
-import {
-	PageFlipProvider,
-	Toolbar,
-	usePageFlipControls,
-	usePageFlipState,
-} from "@pageflip/theme";
-
-function Overlay() {
-	const controls = usePageFlipControls();
-	const state = usePageFlipState();
-
-	if (!controls || !state) {
-		return null;
-	}
-
-	return (
-		<Toolbar
-			controls={controls}
-			currentPage={state.currentPage}
-			pageCount={state.pageCount}
-		/>
-	);
-}
-
-export function ProviderExample() {
-	const instance = null;
-
-	return (
-		<PageFlipProvider instance={instance}>
-			<PageFlip width={800} height={600} images={["/pages/1.jpg"]} />
-			<Overlay />
-		</PageFlipProvider>
-	);
-}
-```
-
-### Tailwind v4 preset
-
-```ts
-import pageFlipTheme from "@pageflip/theme/tailwind";
-
-export default {
-	presets: [pageFlipTheme],
-};
-```
-
-## Page API
-
-`@pageflip/core` includes `PageManager` for page lifecycle, lazy loading, cache eviction, and memory tracking.
-
-### `PageManager`
-
-```ts
-import { PageManager } from "@pageflip/core";
-
-const manager = new PageManager({
-  maxCacheSize: 25,
-  lazyLoad: true,
-  preloadAdjacent: true,
-  imageLoadTimeout: 10000,
-  monitorMemory: true,
-});
-
-await manager.loadFromHtml(Array.from(document.querySelectorAll(".page")));
-await manager.loadFromImages(["/pages/1.jpg", "/pages/2.jpg"]);
-await manager.loadFromSources([
-  { type: "html", content: document.createElement("div") },
-  { type: "image", content: "/pages/3.jpg" },
-  { type: "renderer", rendererId: "canvas2d", content: { page: 4 } },
-]);
-
-manager.setCurrentPage(1);
-await manager.ensurePageLoaded(1);
-
-const page = manager.getPage(1);
-const pages = manager.getAllPages();
-const count = manager.getPageCount();
-const loaded = manager.isPageLoaded(1);
-const status = manager.getPageLoadStatus(1);
-const cache = manager.getCacheStats();
-const memory = manager.getMemoryUsage();
-
-manager.onMemoryPressure(() => {
-  console.log("cache eviction triggered");
-});
-
-await manager.updateFromHtml(Array.from(document.querySelectorAll(".page")));
-await manager.updateFromImages(["/pages/1-new.jpg"]);
-
-manager.clear();
-manager.destroy();
-```
-
-Main methods:
-
-- `loadFromHtml(elements, densities?)`
-- `loadFromImages(urls, densities?)`
-- `loadFromSources(sources)`
-- `updateFromHtml(elements)`
-- `updateFromImages(urls)`
-- `getPage(index)`
-- `getAllPages()`
-- `getPageCount()`
-- `setCurrentPage(index)`
-- `ensurePageLoaded(index)`
-- `isPageLoaded(index)`
-- `getPageLoadStatus(index)`
-- `getCacheStats()`
-- `getMemoryUsage()`
-- `setConfig(config)`
-- `onMemoryPressure(callback)`
-- `clear()`
-- `destroy()`
-
-## Renderer API
-
-`@pageflip/core` includes a Canvas 2D renderer and a renderer factory with automatic fallback selection.
-
-### `Canvas2DRenderer`
-
-```ts
-import { Canvas2DRenderer } from "@pageflip/core";
-
-const renderer = new Canvas2DRenderer({
-  highDPI: true,
-  drawShadow: true,
-  maxShadowOpacity: 0.35,
-  showPageCorners: true,
-  cornerSize: 48,
-  backgroundColor: "#ffffff",
-});
-
-await renderer.init(canvas, {
-  highDPI: true,
-  contextAttributes: { alpha: true },
-});
-
-renderer.resize(800, 600, window.devicePixelRatio || 1);
-renderer.render(frame);
-
-const config = renderer.getConfig();
-renderer.setConfig({ drawShadow: false, backgroundColor: "transparent" });
-
-renderer.destroy();
-```
-
-Config fields:
-
-- `highDPI`
-- `drawShadow`
-- `maxShadowOpacity`
-- `showPageCorners`
-- `cornerSize`
-- `backgroundColor`
-
-Capabilities:
-
-- `zoom: false`
-- `pan: false`
-- `hiDPI: true`
-- `supportsVideo: true`
-- `supportsPDF: false`
-- `supportsPBR: false`
-
-### `RendererFactory`
-
-```ts
-import { RendererFactory } from "@pageflip/core";
-
-const renderer = await RendererFactory.create("auto", canvas, {
-  highDPI: true,
-});
-
-const canvasRenderer = await RendererFactory.create("canvas2d", canvas);
-const capabilities = await RendererFactory.getCapabilities("canvas2d");
-```
-
-`RendererFactory.create("auto", ...)` tries available renderers in priority order and falls back to `canvas2d` when advanced APIs are unavailable.
-
-## Input API
-
-`packages/core/src/input` includes pure handlers for unified input processing:
-
-- `MouseHandler`
-- `TouchHandler`
-- `KeyboardHandler`
-- `WheelHandler`
-- `InputManager`
-
-### Basic usage
-
-```ts
-import {
-  InputManager,
-  KeyboardHandler,
-  MouseHandler,
-  TouchHandler,
-  WheelHandler,
-} from "./packages/core/src/input";
-
-const mouse = new MouseHandler();
-const touch = new TouchHandler();
-const keyboard = new KeyboardHandler();
-const wheel = new WheelHandler();
-
-const input = new InputManager({
-  pageRect: { x: 0, y: 0, width: 800, height: 600 },
-  cornerSize: 48,
-  clickToFlip: true,
-  swipeDistance: 30,
-  dragThreshold: 5,
-  enableKeyboard: true,
-  enableWheelZoom: true,
-  enableHorizontalScroll: true,
-});
-
-input.onInput((event) => {
-  if (event.type === "keyAction" && event.keyboardAction === "next") {
-    console.log("go to next page");
-  }
-});
-```
-
-### Mouse and touch helpers
-
-```ts
-const mouseResult = mouse.onMouseDown({ x: 12, y: 18 });
-const touchResult = touch.onTouchStart([{ x: 12, y: 18, identifier: 1 }]);
-
-if (mouseResult.corner || touchResult.corner) {
-  console.log("corner interaction started");
-}
-```
-
-### Keyboard shortcuts
-
-```ts
-const action = keyboard.getActionForKey("ArrowRight");
-
-if (action === "next") {
-  console.log("advance page");
-}
-```
-
-### Wheel interactions
-
-```ts
-const result = wheel.onWheel({
-  deltaX: 0,
-  deltaY: 24,
-  deltaMode: 0,
-  ctrlKey: true,
-  shiftKey: false,
-  metaKey: false,
-  preventDefault() {},
-} as WheelEvent);
-
-if (result.action === "zoom") {
-  console.log(result.zoomDelta);
-}
-```
-
-### `FlipEngine`
-
-Constructor:
-
-```ts
-const engine = new FlipEngine(container, {
-  width: 800,
-  height: 600,
-});
-```
-
-Main methods:
-
-- `flipNext(corner?)`
-- `flipPrev(corner?)`
-- `flip(pageIndex, corner?)`
-- `turnToPage(pageIndex)`
-- `turnToNextPage()`
-- `turnToPrevPage()`
-- `loadFromHtml(elements)`
-- `loadFromImages(urls)`
-- `loadFromSources(sources)`
-- `updateFromHtml(elements)`
-- `updateFromImages(urls)`
-- `setRenderer(rendererId)`
-- `getRenderer()`
-- `updateConfig(config)`
-- `destroy()`
-
-State getters:
-
-- `pageCount`
-- `currentPageIndex`
-- `orientation`
-- `state`
-- `bounds`
-
-## Layout Calculator API (`@pageflip/core/layout`)
-
-### `LayoutCalculator`
-
-```typescript
-import { LayoutCalculator } from '@pageflip/core/layout';
-
-const calculator = new LayoutCalculator({
-  minWidth: 300,
-  maxWidth: 1200,
-  minHeight: 400,
-  maxHeight: 1600,
-});
-```
-
-#### `calculate(containerRect, config)`
-Returns `LayoutResult` with:
-- `pageWidth`, `pageHeight` - Page size in CSS pixels
-- `scale` - Scale factor to fit container
-- `offsetX`, `offsetY` - Centered position
-- `orientation` - 'portrait' | 'landscape'
-- `pageRect` - Page bounds in container coordinates
-- `containerRect` - Original container bounds
-
-#### `calculateFixed(containerRect, pageSize, usePortrait)`
-Fixed size mode layout.
-
-#### `calculateStretch(containerRect, constraints, usePortrait)`
-Stretch/responsive mode layout.
-
-#### `hitTestCorner(point, pageRect, cornerSize?)`
-Returns `'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | null`
-
----
-
-### `OrientationManager`
-
-```typescript
-import { OrientationManager } from '@pageflip/core/layout';
-
-const orientation = new OrientationManager(layoutCalculator);
-orientation.setPortraitPreference(true);
-orientation.setOrientationLock('none'); // 'portrait' | 'landscape' | 'none'
-
-orientation.onOrientationChange((event) => {
-  console.log(event.orientation, event.previousOrientation, event.automatic);
-});
-```
-
----
-
-### `Constraints` Utilities
-
-```typescript
-import { validateConstraints, clampSizeToConstraints } from '@pageflip/core/layout';
-
-const constraints = validateConstraints({ minWidth: 300, maxWidth: 800 });
-const clamped = clampSizeToConstraints({ width: 1000, height: 500 }, constraints);
-```
+## Features
+
+- 📖 Realistic page-turning interaction for books, magazines, and catalogs
+- ⚛️ React 18+ wrapper with SSR-safe integration patterns
+- 🧩 Web Components for framework-agnostic adoption
+- 🎨 Optional theme package with tokens and ready-made UI primitives
+- ♿ Accessibility-minded controls, keyboard interaction, and semantic markup support
+- 🧠 TypeScript-first public APIs across the ecosystem
+- 📱 Responsive layout and orientation-aware behavior
+- 🔌 Extensible architecture for custom renderers and advanced integrations
+
+## Documentation
+
+- [Homepage](https://pageflip.dev)
+- [Getting Started](https://pageflip.dev/guide/getting-started)
+- [Installation](https://pageflip.dev/guide/installation)
+- [Core API](https://pageflip.dev/api/core)
+- [React API](https://pageflip.dev/api/react)
+- [Web Components API](https://pageflip.dev/api/web-components)
+- [Theme API](https://pageflip.dev/api/theme)
+- [Examples](https://pageflip.dev/examples/)
+- [Migration Guide](https://pageflip.dev/migration/from-react-pageflip)
+
+## Compatibility
+
+| Target | Support |
+| --- | --- |
+| Node.js | `18.18+` |
+| React | `18.2+` |
+| TypeScript | Included type definitions |
+| Bundlers | npm, pnpm, Yarn, Bun, Vite, Next.js |
+| Browsers | Modern evergreen browsers with Custom Elements and ES Modules support |
+| SSR | Supported through `@pageflip/react` integration patterns |
+
+## Contributing
+
+- [Contributing Guide](./CONTRIBUTING.md)
+- [Open an Issue](https://github.com/ignaciobockl/pageflip/issues)
+- [Pull Requests](https://github.com/ignaciobockl/pageflip/pulls)
+- [Repository](https://github.com/ignaciobockl/pageflip)
+
+## License
+
+MIT © Ignacio Bockl. See [LICENSE](./LICENSE).
