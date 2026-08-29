@@ -1,0 +1,58 @@
+name: PR Gate — Owner Approval Required
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions: { contents: read, pull-requests: write, statuses: write }
+
+jobs:
+  enforce-governance:
+    name: Enforce Governance Rules
+    runs-on: ubuntu-latest
+    if: github.actor != 'ignaciobockl' && !contains(github.event.pull_request.labels.*.name, 'owner-approved')
+    steps:
+      - name: Check for approved issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner, repo: context.repo.repo, pull_number: context.payload.pull_request.number
+            });
+            const issueRef = pr.body?.match(/#(\\d+)/);
+            if (!issueRef) { core.setFailed('PR must reference an issue (e.g. "Fixes #123")'); return; }
+            const { data: issue } = await github.rest.issues.get({
+              owner: context.repo.owner, repo: context.repo.repo, issue_number: issueRef[1]
+            });
+            const hasApprovedLabel = issue.labels.some(l => l.name === 'approved' || l.name === 'owner-approved');
+            if (!hasApprovedLabel) { core.setFailed('Referenced issue must have "approved" or "owner-approved" label from Owner'); }
+
+      - name: Check CLA signed
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner, repo: context.repo.repo, pull_number: context.payload.pull_request.number
+            });
+            const hasCLA = pr.labels.some(l => l.name === 'cla-signed');
+            if (!hasCLA) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo, issue_number: context.payload.pull_request.number,
+                body: '❌ **CLA Required** — Please sign the CLA before this PR can be reviewed. See CONTRIBUTING.md'
+              });
+              core.setFailed('CLA not signed');
+            }
+
+  ci-checks:
+    name: CI Checks (Must Pass Before Review)
+    runs-on: ubuntu-latest
+    needs: enforce-governance
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run typecheck
+      - run: bun run test:coverage
+      - run: bun run build
+      - run: bun run test:e2e

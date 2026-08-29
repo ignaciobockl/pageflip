@@ -1,0 +1,11 @@
+{
+	"extends": "@pageflip/tsconfig/tsconfig.lib.json",
+	"compilerOptions": {
+		"jsx": "react-jsx",
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"outDir": "dist",
+		"rootDir": "."
+	},
+	"include": [".vitepress/**/*", "*.md"],
+	"exclude": ["node_modules", "dist"]
+}

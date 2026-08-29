@@ -1,0 +1,153 @@
+name: Auto-generate PR Description
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  generate-description:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate PR description
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              const pr = context.payload.pull_request;
+              if (!pr) {
+                console.log('No PR context, skipping');
+                return;
+              }
+              // Skip if already has description
+              if (pr.body && pr.body.length > 50) {
+                console.log('PR already has description, skipping auto-generation');
+                return;
+              }
+            
+            // Get changed files
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number
+            });
+            
+            // Get commits
+            const { data: commits } = await github.rest.pulls.listCommits({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number
+            });
+            
+            // Categorize changes
+            const categories = {
+              features: [],
+              bugs: [],
+              visual: [],
+              technical: [],
+              docs: [],
+              tests: []
+            };
+            
+            for (const file of files) {
+              const path = file.filename;
+              const status = file.status;
+              
+              if (path.startsWith('packages/') && status === 'added') {
+                if (path.includes('/src/')) {
+                  if (file.filename.includes('test') || file.filename.includes('spec')) {
+                    categories.tests.push(file.filename);
+                  } else if (file.filename.includes('css') || file.filename.includes('tokens')) {
+                    categories.visual.push(file.filename);
+                  } else {
+                    categories.features.push(file.filename);
+                  }
+                }
+              } else if (path.startsWith('apps/') && status === 'added') {
+                categories.features.push(file.filename);
+              } else if (path.endsWith('.md')) {
+                categories.docs.push(file.filename);
+              }
+            }
+            
+            // Parse conventional commits
+            for (const commit of commits) {
+              const msg = commit.commit.message;
+              if (msg.startsWith('feat')) {
+                // Already categorized
+              } else if (msg.startsWith('fix')) {
+                const title = msg.split('\n')[0].replace(/^fix(\([^)]+\))?:\s*/, '');
+                categories.bugs.push(title);
+              } else if (msg.startsWith('refactor') || msg.startsWith('perf')) {
+                const title = msg.split('\n')[0].replace(/^(refactor|perf)(\([^)]+\))?:\s*/, '');
+                categories.technical.push(title);
+              } else if (msg.startsWith('docs')) {
+                const title = msg.split('\n')[0].replace(/^docs(\([^)]+\))?:\s*/, '');
+                categories.docs.push(title);
+              }
+            }
+            
+            // Build description
+            let body = '## 📦 Cambios\n\n';
+            
+            if (categories.features.length > 0) {
+              body += '### ✨ Funcionalidades\n';
+              for (const f of categories.features.slice(0, 10)) {
+                body += `- ${f}\n`;
+              }
+              body += '\n';
+            }
+            
+            if (categories.bugs.length > 0) {
+              body += '### 🐛 Bugs Resueltos\n';
+              for (const b of categories.bugs) {
+                body += `- ${b}\n`;
+              }
+              body += '\n';
+            }
+            
+            if (categories.visual.length > 0) {
+              body += '### 🎨 Mejoras Visuales\n';
+              for (const v of categories.visual) {
+                body += `- ${v}\n`;
+              }
+              body += '\n';
+            }
+            
+            if (categories.technical.length > 0) {
+              body += '### 🔧 Mejoras Técnicas\n';
+              for (const t of categories.technical) {
+                body += `- ${t}\n`;
+              }
+              body += '\n';
+            }
+            
+            if (categories.docs.length > 0) {
+              body += '### 📚 Documentación\n';
+              for (const d of categories.docs.slice(0, 10)) {
+                body += `- ${d}\n`;
+              }
+              body += '\n';
+            }
+            
+            // Update PR
+            if (body !== '## 📦 Cambios\n\n') {
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                body: body + '\n---\n*Descripción auto-generada a partir de los cambios del PR*'
+              });
+              console.log('PR description updated');
+            }
+            } catch (e) {
+              console.log('Skip auto-description:', e.message);
+            }

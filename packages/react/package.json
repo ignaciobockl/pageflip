@@ -1,0 +1,52 @@
+{
+	"name": "@pageflip/react",
+	"version": "0.1.0",
+	"description": "React 18+ wrapper for PageFlip core",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		},
+		"./package.json": "./package.json"
+	},
+	"files": ["dist"],
+	"scripts": {
+		"dev": "bun build src/index.ts --watch --outdir dist --target bun",
+		"build": "bun build src/index.ts --outdir dist --target bun --external react --external @pageflip/*",
+		"lint": "biome check . && bunx eslint . --ext .ts,.tsx",
+		"lint:fix": "biome check --write . && bunx eslint . --ext .ts,.tsx --fix",
+		"typecheck": "tsc --noEmit",
+		"test": "bun test",
+		"test:coverage": "bun test --coverage",
+		"clean": "rm -rf dist"
+	},
+	"peerDependencies": {
+		"react": ">=18.2.0",
+		"react-dom": ">=18.2.0"
+	},
+	"devDependencies": {
+		"@pageflip/tsconfig": "workspace:*",
+		"@pageflip/biome-config": "workspace:*",
+		"@pageflip/eslint-config": "workspace:*",
+		"@types/react": "18.3.0",
+		"@types/react-dom": "18.3.0",
+		"react": "18.3.0",
+		"react-dom": "18.3.0",
+		"typescript": "5.6.3"
+	},
+	"author": "Ignacio Bockl",
+	"license": "MIT",
+	"publishConfig": { "access": "public" },
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ignaciobockl/pageflip.git"
+	},
+	"bugs": {
+		"url": "https://github.com/ignaciobockl/pageflip/issues"
+	},
+	"homepage": "https://pageflip.dev"
+}

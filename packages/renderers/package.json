@@ -1,0 +1,47 @@
+{
+	"name": "@pageflip/renderers",
+	"version": "0.1.0",
+	"description": "Meta package for PageFlip renderers",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		},
+		"./package.json": "./package.json"
+	},
+	"files": ["dist"],
+	"scripts": {
+		"dev": "bun build src/index.ts --watch --outdir dist --target bun",
+		"build": "bun build src/index.ts --outdir dist --target bun --external @pageflip/*",
+		"lint": "biome check . && bunx eslint . --ext .ts,.tsx",
+		"lint:fix": "biome check --write . && bunx eslint . --ext .ts,.tsx --fix",
+		"typecheck": "tsc --noEmit",
+		"test": "bun test",
+		"test:coverage": "bun test --coverage",
+		"deps:check": "ncu --peer --filterVersion '^' --reject '@pageflip/*'",
+		"deps:update": "ncu --peer --filterVersion '^' --reject '@pageflip/*' -u && bun install",
+		"clean": "rm -rf dist"
+	},
+	"author": "Ignacio Bockl",
+	"license": "MIT",
+	"publishConfig": { "access": "public" },
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ignaciobockl/pageflip.git"
+	},
+	"bugs": { "url": "https://github.com/ignaciobockl/pageflip/issues" },
+	"homepage": "https://pageflip.dev",
+	"keywords": ["page-flip", "flip-book", "pageflip", "renderers"],
+	"devDependencies": {
+		"@pageflip/tsconfig": "workspace:*",
+		"@pageflip/biome-config": "workspace:*",
+		"@pageflip/eslint-config": "workspace:*",
+		"typescript": "5.6.3"
+	},
+	"peerDependencies": {},
+	"trustedDependencies": []
+}

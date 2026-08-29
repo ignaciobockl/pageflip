@@ -1,0 +1,6 @@
+{
+  "name": "@pageflip/release-config",
+  "version": "0.0.0",
+  "private": true,
+  "files": ["changeset-config.json"]
+}

@@ -1,0 +1,59 @@
+name: Strip AI Files on master
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  strip-ai:
+    runs-on: ubuntu-latest
+    if: github.head_ref != 'master'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Strip AI tooling files
+        run: |
+          set -e
+          PATTERN='(\.opencode|opencode\.json|CLAUDE\.md|\.claude|AGENTS\.md|agents\.md|\.cursor|\.cursorrules|\.skills|skills/|\.ai/|\.continue|MUSE\.md)'
+          FILES=$(git diff --name-only origin/master...HEAD | grep -Ei "$PATTERN" || true)
+          if [ -z "$FILES" ]; then
+            echo "No AI files in diff - OK"
+            exit 0
+          fi
+          echo "AI files detected, stripping:"
+          echo "$FILES"
+          echo "$FILES" | xargs -r git rm --cached -r --ignore-unmatch || true
+          # Also remove from working tree if present
+          echo "$FILES" | xargs -r rm -rf || true
+          if git diff --cached --quiet; then
+            echo "Nothing to commit after strip"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: strip AI tooling files for master
+
+          Auto-removed AI-related files from PR to master.
+          Kept in develop, removed for production branch."
+          git push origin HEAD:${{ github.head_ref }}
+          echo "Stripped and pushed"
+
+      - name: Comment on PR
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '⚠️ AI tooling files were auto-removed from this PR to `master`. They remain in `develop`.'
+            })

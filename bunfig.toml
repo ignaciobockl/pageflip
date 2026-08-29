@@ -1,0 +1,14 @@
+[install]
+cache = true
+registry = "https://registry.npmjs.org"
+
+[test]
+coverage = true
+coverageMode = "process"
+root = "./apps/playground/tests/e2e"
+
+[build]
+target = "browser"
+splitting = true
+sourcemap = "external"
+minify = true
