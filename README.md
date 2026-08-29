@@ -125,6 +125,11 @@ Use:
 | Browsers | Modern evergreen browsers with Custom Elements and ES Modules support |
 | SSR | Supported through `@pageflip/react` integration patterns |
 
+## Package Manager
+
+Works with npm, pnpm, yarn, bun. Recommended: bun `bun install` (fastest).
+npm: `npm install` / pnpm: `pnpm install` / yarn: `yarn install`
+
 ## Contributing
 
 - [Contributing Guide](./CONTRIBUTING.md)
