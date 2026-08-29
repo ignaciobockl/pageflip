@@ -766,11 +766,20 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 	/** Run an animated flip transition. */
 	private async runFlip(pageIndex: number, corner?: FlipCorner): Promise<void> {
 		if (
-			this.runtime.renderer === null ||
 			pageIndex < 0 ||
 			pageIndex >= this.pageCount ||
 			pageIndex === this.currentPageIndex
 		) {
+			return;
+		}
+
+		// If renderer is not ready yet, fall back to an instant jump.
+		if (this.runtime.renderer === null) {
+			this._currentPageIndex = pageIndex;
+			this.pageManager.setCurrentPage(pageIndex);
+			await this.pageManager.ensurePageLoaded(pageIndex);
+			this.render();
+			this.emitUpdate();
 			return;
 		}
 		this.runtime.flipDirection =
