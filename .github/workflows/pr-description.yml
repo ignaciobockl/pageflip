@@ -27,11 +27,16 @@ jobs:
                 console.log('No PR context, skipping');
                 return;
               }
-              // Skip if already has description
-              if (pr.body && pr.body.length > 50) {
-                console.log('PR already has description, skipping auto-generation');
+              const isTemplate = pr.body && (
+                pr.body.includes('<!-- Breve resumen') ||
+                (pr.body.includes('### ✨ Funcionalidades') && pr.body.includes('- \n- \n\n### 🐛'))
+              );
+              // Skip only if has custom description (not template)
+              if (pr.body && pr.body.length > 100 && !isTemplate) {
+                console.log('PR already has custom description, skipping');
                 return;
               }
+              if (isTemplate) console.log('Template detected, generating...');
             
             // Get changed files
             const { data: files } = await github.rest.pulls.listFiles({
@@ -59,95 +64,53 @@ jobs:
             
             for (const file of files) {
               const path = file.filename;
-              const status = file.status;
-              
-              if (path.startsWith('packages/') && status === 'added') {
-                if (path.includes('/src/')) {
-                  if (file.filename.includes('test') || file.filename.includes('spec')) {
-                    categories.tests.push(file.filename);
-                  } else if (file.filename.includes('css') || file.filename.includes('tokens')) {
-                    categories.visual.push(file.filename);
-                  } else {
-                    categories.features.push(file.filename);
-                  }
-                }
-              } else if (path.startsWith('apps/') && status === 'added') {
-                categories.features.push(file.filename);
+              if (path.includes('/src/') && (path.includes('test') || path.includes('spec'))) {
+                categories.tests.push(file.filename);
+              } else if (path.endsWith('.css') || path.includes('tokens')) {
+                categories.visual.push(file.filename);
               } else if (path.endsWith('.md')) {
                 categories.docs.push(file.filename);
+              } else if (file.status !== 'removed') {
+                // All other changed files (added/modified/renamed)
+                if (path.startsWith('packages/') || path.startsWith('apps/')) {
+                  categories.features.push(file.filename);
+                } else {
+                  categories.technical.push(file.filename);
+                }
               }
             }
             
-            // Parse conventional commits
+            // Parse conventional commits for bugs/technical/docs
             for (const commit of commits) {
-              const msg = commit.commit.message;
-              if (msg.startsWith('feat')) {
-                // Already categorized
-              } else if (msg.startsWith('fix')) {
-                const title = msg.split('\n')[0].replace(/^fix(\([^)]+\))?:\s*/, '');
-                categories.bugs.push(title);
-              } else if (msg.startsWith('refactor') || msg.startsWith('perf')) {
-                const title = msg.split('\n')[0].replace(/^(refactor|perf)(\([^)]+\))?:\s*/, '');
-                categories.technical.push(title);
-              } else if (msg.startsWith('docs')) {
-                const title = msg.split('\n')[0].replace(/^docs(\([^)]+\))?:\s*/, '');
-                categories.docs.push(title);
+              const raw = commit.commit.message.split('\n')[0];
+              if (raw.startsWith('fix')) {
+                categories.bugs.push(raw.replace(/^fix(\([^)]+\))?:\s*/, ''));
+              } else if (raw.startsWith('docs')) {
+                const t = raw.replace(/^docs(\([^)]+\))?:\s*/, '');
+                if (!categories.docs.includes(t)) categories.docs.push(t);
+              } else if (raw.startsWith('chore') || raw.startsWith('refactor') || raw.startsWith('perf') || raw.startsWith('ci') || raw.startsWith('build')) {
+                const t = raw.replace(/^(chore|refactor|perf|ci|build)(\([^)]+\))?:\s*/, '');
+                if (!categories.technical.includes(t)) categories.technical.push(t);
               }
             }
             
-            // Build description
+            // Build description - always show all sections (empty = "-")
             let body = '## 📦 Cambios\n\n';
+            const fmt = (arr) => arr.length ? arr.slice(0, 10).map(v => `- ${v}`).join('\n') : '-';
+            body += `### ✨ Funcionalidades\n${fmt(categories.features)}\n\n`;
+            body += `### 🐛 Bugs Resueltos\n${fmt(categories.bugs)}\n\n`;
+            body += `### 🎨 Mejoras Visuales\n${fmt(categories.visual)}\n\n`;
+            body += `### 🔧 Mejoras Técnicas\n${fmt(categories.technical)}\n\n`;
+            body += `### 📚 Documentación\n${fmt(categories.docs)}\n\n`;
+            body += `---\n*Auto-generado: ${files.length} archivos, ${commits.length} commits*`;
             
-            if (categories.features.length > 0) {
-              body += '### ✨ Funcionalidades\n';
-              for (const f of categories.features.slice(0, 10)) {
-                body += `- ${f}\n`;
-              }
-              body += '\n';
-            }
-            
-            if (categories.bugs.length > 0) {
-              body += '### 🐛 Bugs Resueltos\n';
-              for (const b of categories.bugs) {
-                body += `- ${b}\n`;
-              }
-              body += '\n';
-            }
-            
-            if (categories.visual.length > 0) {
-              body += '### 🎨 Mejoras Visuales\n';
-              for (const v of categories.visual) {
-                body += `- ${v}\n`;
-              }
-              body += '\n';
-            }
-            
-            if (categories.technical.length > 0) {
-              body += '### 🔧 Mejoras Técnicas\n';
-              for (const t of categories.technical) {
-                body += `- ${t}\n`;
-              }
-              body += '\n';
-            }
-            
-            if (categories.docs.length > 0) {
-              body += '### 📚 Documentación\n';
-              for (const d of categories.docs.slice(0, 10)) {
-                body += `- ${d}\n`;
-              }
-              body += '\n';
-            }
-            
-            // Update PR
-            if (body !== '## 📦 Cambios\n\n') {
-              await github.rest.pulls.update({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: pr.number,
-                body: body + '\n---\n*Descripción auto-generada a partir de los cambios del PR*'
-              });
-              console.log('PR description updated');
-            }
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              body: body
+            });
+            console.log('PR description updated');
             } catch (e) {
               console.log('Skip auto-description:', e.message);
             }
