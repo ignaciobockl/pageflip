@@ -42,6 +42,9 @@
 	},
 	"homepage": "https://pageflip.dev",
 	"keywords": ["page-flip", "flip-book", "pageflip", "theme", "tokens"],
+	"dependencies": {
+		"class-variance-authority": "0.7.1"
+	},
 	"devDependencies": {
 		"@pageflip/tsconfig": "workspace:*",
 		"@pageflip/biome-config": "workspace:*",

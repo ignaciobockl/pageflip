@@ -7,6 +7,12 @@ import type { PageFlipControls } from "@pageflip/react";
  */
 import type React from "react";
 import { forwardRef } from "react";
+import {
+	toolbarButtonVariants,
+	toolbarIndicatorDotVariants,
+	toolbarSectionVariants,
+	toolbarVariants,
+} from "./toolbar.variants";
 
 /**
  * Toolbar props
@@ -86,7 +92,7 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 			<div
 				ref={ref}
 				data-testid={testId}
-				className={`pf-toolbar pf-toolbar--${position} ${className || ""}`}
+				className={`${toolbarVariants({ position })} ${className || ""}`}
 				style={{
 					position: "absolute",
 					[position]: 0,
@@ -112,7 +118,7 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 			>
 				{/* Left: First/Prev */}
 				<div
-					className="pf-toolbar__start"
+					className={toolbarSectionVariants({ align: "start" })}
 					style={{
 						display: "flex",
 						alignItems: "center",
@@ -123,7 +129,9 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 						type="button"
 						onClick={handleFirst}
 						disabled={isFirstPage}
-						className="pf-btn pf-btn--icon pf-btn--ghost"
+						className={toolbarButtonVariants({
+							state: isFirstPage ? "disabled" : undefined,
+						})}
 						style={{
 							width: "var(--pf-zoom-btn-size)",
 							height: "var(--pf-zoom-btn-size)",
@@ -159,7 +167,9 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 						type="button"
 						onClick={handlePrev}
 						disabled={isFirstPage}
-						className="pf-btn pf-btn--icon pf-btn--ghost"
+						className={toolbarButtonVariants({
+							state: isFirstPage ? "disabled" : undefined,
+						})}
 						style={{
 							width: "var(--pf-zoom-btn-size)",
 							height: "var(--pf-zoom-btn-size)",
@@ -195,7 +205,7 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 				{/* Center: Page Indicator */}
 				{showPageIndicator && (
 					<div
-						className="pf-toolbar__center pf-page-indicator"
+						className={`${toolbarSectionVariants({ align: "center" })} pf-page-indicator`}
 						style={{
 							display: "flex",
 							alignItems: "center",
@@ -235,7 +245,14 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 											key={pageNumber}
 											type="button"
 											onClick={() => controls.goTo(pageNumber - 1)}
-											className={`pf-page-indicator__dot ${pageNumber - 1 === currentPage ? "pf-page-indicator__dot--active" : ""}`}
+											className={toolbarIndicatorDotVariants({
+												state:
+													pageNumber - 1 === currentPage
+														? "active"
+														: pageCount > 10 && pageNumber >= 9
+															? "muted"
+															: undefined,
+											})}
 											style={{
 												width: "var(--pf-page-indicator-hit-area)",
 												height: "var(--pf-page-indicator-hit-area)",
@@ -279,7 +296,7 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 
 				{/* Right: Next/Last */}
 				<div
-					className="pf-toolbar__end"
+					className={toolbarSectionVariants({ align: "end" })}
 					style={{
 						display: "flex",
 						alignItems: "center",
@@ -290,7 +307,9 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 						type="button"
 						onClick={handleNext}
 						disabled={isLastPage}
-						className="pf-btn pf-btn--icon pf-btn--ghost"
+						className={toolbarButtonVariants({
+							state: isLastPage ? "disabled" : undefined,
+						})}
 						style={{
 							width: "var(--pf-zoom-btn-size)",
 							height: "var(--pf-zoom-btn-size)",
@@ -325,7 +344,9 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 						type="button"
 						onClick={handleLast}
 						disabled={isLastPage}
-						className="pf-btn pf-btn--icon pf-btn--ghost"
+						className={toolbarButtonVariants({
+							state: isLastPage ? "disabled" : undefined,
+						})}
 						style={{
 							width: "var(--pf-zoom-btn-size)",
 							height: "var(--pf-zoom-btn-size)",
