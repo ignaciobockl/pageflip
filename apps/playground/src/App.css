@@ -52,8 +52,8 @@
 	padding: var(--pf-space-xs) var(--pf-space-md);
 	border: none;
 	border-radius: var(--pf-radius-md);
-	background-color: var(--pf-color-primary);
-	color: white;
+	background-color: var(--pf-color-primary-active);
+	color: var(--pf-color-text-inverse);
 	font-size: var(--pf-text-sm);
 	font-weight: var(--pf-font-medium);
 	cursor: pointer;
@@ -166,7 +166,7 @@
 	display: flex;
 	gap: var(--pf-space-lg);
 	font-size: var(--pf-text-sm);
-	color: var(--pf-color-text-muted);
+	color: var(--pf-color-text-secondary);
 	justify-content: center;
 }
 
@@ -231,8 +231,9 @@
 }
 
 .footer a {
-	color: var(--pf-color-primary);
-	text-decoration: none;
+	color: var(--pf-color-primary-active);
+	text-decoration: underline;
+	text-underline-offset: 2px;
 }
 
 .footer a:hover,
@@ -315,7 +316,7 @@
 	display: inline-block;
 	padding: var(--pf-space-xs) var(--pf-space-sm);
 	background-color: var(--pf-color-primary-light);
-	color: var(--pf-color-primary);
+	color: var(--pf-color-primary-active);
 	border-radius: var(--pf-radius-full);
 	font-size: var(--pf-text-xs);
 	font-weight: var(--pf-font-medium);
@@ -353,8 +354,9 @@
 }
 
 .link {
-	color: var(--pf-color-primary);
-	text-decoration: none;
+	color: var(--pf-color-primary-active);
+	text-decoration: underline;
+	text-underline-offset: 2px;
 	font-weight: var(--pf-font-medium);
 }
 
