@@ -1,5 +1,11 @@
 # @pageflip/theme
 
+## 0.1.1
+
+### Patch Changes
+
+- docs: add Package Manager section and bump bun to 1.4.0
+
 ## 0.1.0
 
 ### Minor Changes
