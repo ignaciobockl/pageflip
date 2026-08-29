@@ -20,6 +20,8 @@ export interface PageIndicatorProps {
 	maxDots?: number;
 	/** Show page numbers instead of dots */
 	showNumbers?: boolean;
+	/** Explicit mode for indicator rendering. */
+	mode?: "dots" | "numbers";
 	/** Additional CSS class */
 	className?: string;
 	/** Inline styles */
@@ -46,6 +48,7 @@ export const PageIndicator: React.FC<PageIndicatorProps> = ({
 	onPageClick,
 	maxDots = 10,
 	showNumbers = false,
+	mode,
 	className,
 	style,
 	testId = "pageflip-page-indicator",
@@ -61,6 +64,7 @@ export const PageIndicator: React.FC<PageIndicatorProps> = ({
 		(_, i) => startIndex + i,
 	);
 	const allPages = Array.from({ length: total }, (_, pageIndex) => pageIndex);
+	const resolvedMode = mode ?? (showNumbers ? "numbers" : "dots");
 
 	return (
 		<nav
@@ -74,7 +78,7 @@ export const PageIndicator: React.FC<PageIndicatorProps> = ({
 			}}
 			aria-label={`Page ${current + 1} of ${total}`}
 		>
-			{showNumbers ? (
+			{resolvedMode === "numbers" ? (
 				<select
 					value={current}
 					onChange={(e) => onPageClick(Number(e.target.value))}

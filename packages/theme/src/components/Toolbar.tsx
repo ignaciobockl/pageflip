@@ -28,6 +28,8 @@ export interface ToolbarProps {
 	pageCount: number;
 	/** Show page indicator */
 	showPageIndicator?: boolean;
+	/** Explicit indicator content. Pass `null` to hide it. */
+	indicator?: React.ReactNode | null;
 	/** Custom page indicator render */
 	renderPageIndicator?: (current: number, total: number) => React.ReactNode;
 	/** Additional CSS class */
@@ -62,6 +64,7 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 			currentPage,
 			pageCount,
 			showPageIndicator = true,
+			indicator,
 			renderPageIndicator,
 			className,
 			style,
@@ -87,6 +90,47 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 		const handleLast = async () => {
 			await controls.goTo(pageCount - 1);
 		};
+
+		const defaultIndicator = renderPageIndicator ? (
+			renderPageIndicator(currentPage, pageCount)
+		) : (
+			<>
+				<span className="pf-toolbar__page-text">
+					{currentPage + 1} / {pageCount}
+				</span>
+				<div className="pf-toolbar__page-dots" aria-label="Pages">
+					{Array.from(
+						{ length: Math.min(pageCount, 10) },
+						(_, index) => index + 1,
+					).map((pageNumber) => (
+						<button
+							key={pageNumber}
+							type="button"
+							onClick={() => controls.goTo(pageNumber - 1)}
+							className={toolbarIndicatorDotVariants({
+								state:
+									pageNumber - 1 === currentPage
+										? "active"
+										: pageCount > 10 && pageNumber >= 9
+											? "muted"
+											: undefined,
+							})}
+							aria-label={`Go to page ${pageNumber}`}
+							aria-current={pageNumber - 1 === currentPage ? "page" : undefined}
+							data-testid={`page-indicator-${pageNumber - 1}`}
+						/>
+					))}
+					{pageCount > 10 && <span className="pf-toolbar__ellipsis">...</span>}
+				</div>
+			</>
+		);
+
+		const resolvedIndicator =
+			indicator !== undefined
+				? indicator
+				: showPageIndicator
+					? defaultIndicator
+					: null;
 
 		return (
 			<div
@@ -149,49 +193,13 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 				</div>
 
 				{/* Center: Page Indicator */}
-				{showPageIndicator && (
+				{resolvedIndicator !== null && (
 					<div
 						className={`${toolbarSectionVariants({ align: "center" })} pf-page-indicator`}
 						aria-label="Page indicator"
 						data-testid="page-indicator"
 					>
-						{renderPageIndicator ? (
-							renderPageIndicator(currentPage, pageCount)
-						) : (
-							<>
-								<span className="pf-toolbar__page-text">
-									{currentPage + 1} / {pageCount}
-								</span>
-								<div className="pf-toolbar__page-dots" aria-label="Pages">
-									{Array.from(
-										{ length: Math.min(pageCount, 10) },
-										(_, index) => index + 1,
-									).map((pageNumber) => (
-										<button
-											key={pageNumber}
-											type="button"
-											onClick={() => controls.goTo(pageNumber - 1)}
-											className={toolbarIndicatorDotVariants({
-												state:
-													pageNumber - 1 === currentPage
-														? "active"
-														: pageCount > 10 && pageNumber >= 9
-															? "muted"
-															: undefined,
-											})}
-											aria-label={`Go to page ${pageNumber}`}
-											aria-current={
-												pageNumber - 1 === currentPage ? "page" : undefined
-											}
-											data-testid={`page-indicator-${pageNumber - 1}`}
-										/>
-									))}
-									{pageCount > 10 && (
-										<span className="pf-toolbar__ellipsis">…</span>
-									)}
-								</div>
-							</>
-						)}
+						{resolvedIndicator}
 					</div>
 				)}
 

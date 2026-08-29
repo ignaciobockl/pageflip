@@ -27,6 +27,8 @@ export interface ZoomControlsProps {
 	onReset: () => void;
 	/** Show zoom level text */
 	showLevel?: boolean;
+	/** Explicit level content. Pass `null` to hide it. */
+	levelIndicator?: React.ReactNode | null;
 	/** Additional CSS class */
 	className?: string;
 	/** Inline styles */
@@ -59,6 +61,7 @@ export const ZoomControls = forwardRef<HTMLDivElement, ZoomControlsProps>(
 			onZoomOut,
 			onReset,
 			showLevel = true,
+			levelIndicator,
 			className,
 			style,
 			testId = "pageflip-zoom-controls",
@@ -67,6 +70,24 @@ export const ZoomControls = forwardRef<HTMLDivElement, ZoomControlsProps>(
 	) => {
 		const isMin = level <= minZoom;
 		const isMax = level >= maxZoom;
+		const defaultLevelIndicator = showLevel ? (
+			<span
+				style={{
+					minWidth: "3.5rem",
+					textAlign: "center",
+					fontSize: "var(--pf-text-sm)",
+					fontVariantNumeric: "tabular-nums",
+					color: "var(--pf-color-text)",
+					fontFamily: "var(--pf-font-mono)",
+					userSelect: "none",
+				}}
+				aria-live="polite"
+				aria-label={`${Math.round(level * 100)}% zoom`}
+				data-testid={`${testId}-level`}
+			>
+				{Math.round(level * 100)}%
+			</span>
+		) : null;
 
 		return (
 			<div
@@ -125,24 +146,7 @@ export const ZoomControls = forwardRef<HTMLDivElement, ZoomControlsProps>(
 					</svg>
 				</button>
 
-				{showLevel && (
-					<span
-						style={{
-							minWidth: "3.5rem",
-							textAlign: "center",
-							fontSize: "var(--pf-text-sm)",
-							fontVariantNumeric: "tabular-nums",
-							color: "var(--pf-color-text)",
-							fontFamily: "var(--pf-font-mono)",
-							userSelect: "none",
-						}}
-						aria-live="polite"
-						aria-label={`${Math.round(level * 100)}% zoom`}
-						data-testid={`${testId}-level`}
-					>
-						{Math.round(level * 100)}%
-					</span>
-				)}
+				{levelIndicator !== undefined ? levelIndicator : defaultLevelIndicator}
 
 				<button
 					type="button"
