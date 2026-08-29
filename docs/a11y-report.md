@@ -46,6 +46,18 @@ No existe `llms.txt` (recomendaciones de indexing para LLMs).
 - `Component Library` — Toolbar, PageIndicator, ZoomControls (con live region "100% zoom"), FullscreenToggle
 - `contentinfo` — copyright + link "View on GitHub"
 
+## Evaluación de MCPs externos de accesibilidad
+
+Opción evaluada: **no instalar MCP externo en esta fase.**
+
+| Opción | Paquete (npm) | Estado |
+|---|---|---|
+| Chrome DevTools MCP (integrado) | — | Ya disponible en el entorno; `lighthouse_audit` ejecuta axe-core (regla `target-size` de Deque) y da cobertura a11y/SEO/Best Practices |
+| `accessibility-mcp` (paul-vd) | `accessibility-mcp@2.1.7` | Alternativa si se requiere axe-core standalone fuera del entorno Chrome DevTools |
+| `lighthouse-mcp` | `lighthouse-mcp@0.1.15` | Wrapper de Lighthouse; redundante con el MCP integrado |
+
+**Decisión:** el MCP integrado cubre la cobertura axe-core necesaria (verificado: detectó `target-size`). Se reevaluará si se necesita CI automatizado con pa11y/axe dedicado.
+
 ## Historial
 
 | Fecha | Accessibility | Best Practices | SEO | Agentic | Notas |
