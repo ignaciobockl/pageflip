@@ -11,9 +11,11 @@
 			"import": "./dist/index.js",
 			"default": "./dist/index.js"
 		},
+		"./tokens.css": "./src/tokens.css",
+		"./tailwind.css": "./src/tailwind.css",
 		"./package.json": "./package.json"
 	},
-	"files": ["dist"],
+	"files": ["dist", "src/tokens.css", "src/tailwind.css"],
 	"scripts": {
 		"dev": "bun build src/index.ts --watch --outdir dist --target bun",
 		"build": "bun build src/index.ts --outdir dist --target bun --external react --external \"react/*\" --external \"@pageflip/*\"",

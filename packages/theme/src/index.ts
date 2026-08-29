@@ -35,4 +35,6 @@ export type {
 	PageFlipContextValue,
 } from "./context/PageFlipProvider";
 
-// CSS tokens are imported via: import '@pageflip/theme/tokens.css'
+// CSS assets are imported via:
+// import '@pageflip/theme/tokens.css'
+// import '@pageflip/theme/tailwind.css'
