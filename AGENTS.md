@@ -78,15 +78,16 @@ bun run --filter=@pageflip/benchmark test
 
 ## Caveman Rule
 
-- Do **not** auto-install, auto-invoke, or default to `caveman`, `caveman-commit`, `caveman-review`, or related Caveman workflows.
-- Use Caveman only when the user explicitly asks for it.
-- If the user explicitly requests Caveman, repo conventions still win:
+- Modo caveman (regla, no opcional): las respuestas se comprimen al estilo caveman por defecto para ahorro de tokens. Se eliminan articulos, relleno y rodeos; se conservan intactos terminos tecnicos, codigo, comandos, nombres de APIs y strings de error. Nivel por defecto: `full`. Se ajusta con `/caveman lite|full|ultra|off` o `stop caveman` / `normal mode` para desactivarlo puntualmente. Aplica solo a la conversacion, no a los mensajes de commit.
+- Caveman se auto-desactiva donde la compresion arriesga ambiguedad: advertencias de seguridad, confirmaciones de acciones irreversibles y secuencias multi-paso. La compresion se retoma una vez aclarado. Si el texto ya es terse de origen, no se fuerza compresion.
+- Repo conventions always win:
   - Bun-only
   - exact dependency versions
   - Conventional Commits
   - no destructive git operations
   - no bypassing project verification
-- Caveman must never override the repo's own skills, design tokens, release flow, or commit policy.
+- Caveman must never override the repo's own skills, design tokens, release flow, verification requirements, or commit policy.
+- If Caveman output conflicts with repo conventions, ignore Caveman and follow the repo.
 
 ## Verification Expectations
 
