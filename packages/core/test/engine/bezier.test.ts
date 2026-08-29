@@ -4,6 +4,8 @@ import {
 	calculateFoldAngle,
 	calculateFoldCurve,
 	calculateFoldProgress,
+	cubicBezierEase,
+	easeInOutStrong,
 	getCornerHitArea,
 	lerpPoint,
 	quadraticBezierPoint,
@@ -47,5 +49,25 @@ describe("bezier engine math", () => {
 			x: 5,
 			y: 10,
 		});
+	});
+
+	test("easeInOutStrong clamps endpoints and is monotonic", () => {
+		expect(easeInOutStrong(0)).toBe(0);
+		expect(easeInOutStrong(1)).toBe(1);
+		expect(easeInOutStrong(-0.5)).toBe(0);
+		expect(easeInOutStrong(1.5)).toBe(1);
+
+		let previous = 0;
+		for (let step = 0; step <= 10; step += 1) {
+			const value = easeInOutStrong(step / 10);
+			expect(value).toBeGreaterThanOrEqual(previous);
+			previous = value;
+		}
+	});
+
+	test("cubicBezierEase resolves standard curves", () => {
+		expect(cubicBezierEase(0, 0.77, 0, 0.175, 1)).toBe(0);
+		expect(cubicBezierEase(1, 0.77, 0, 0.175, 1)).toBe(1);
+		expect(cubicBezierEase(0.5, 0.42, 0, 0.58, 1)).toBeCloseTo(0.5, 2);
 	});
 });

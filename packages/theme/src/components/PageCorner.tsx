@@ -128,7 +128,7 @@ export const PageCorner = forwardRef<HTMLDivElement, PageCornerProps>(
 		};
 
 		const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
-			if (!visible) return;
+			if (!visible || isDraggingRef.current) return;
 
 			event.preventDefault();
 			event.stopPropagation();
@@ -142,6 +142,8 @@ export const PageCorner = forwardRef<HTMLDivElement, PageCornerProps>(
 
 			const handleTouchMove = (moveEvent: TouchEvent) => {
 				moveEvent.preventDefault();
+
+				if (moveEvent.touches.length > 1) return;
 
 				const touchMove = moveEvent.touches[0];
 
@@ -193,8 +195,14 @@ export const PageCorner = forwardRef<HTMLDivElement, PageCornerProps>(
 		};
 
 		const activeStyles: React.CSSProperties = isDragging
-			? { cursor: "grabbing", transform: "scale(1.1)" }
-			: {};
+			? {
+					cursor: "grabbing",
+					transform: "scale(1.08)",
+					transition: "none",
+				}
+			: {
+					transition: "transform var(--pf-transition-base)",
+				};
 
 		const borderRadius =
 			corner === "top-left"

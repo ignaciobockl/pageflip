@@ -41,7 +41,11 @@ import type {
 	RendererOptions,
 	StateChangeEvent,
 } from "../types";
-import { calculateFoldAngle, calculateFoldProgress } from "./bezier";
+import {
+	calculateFoldAngle,
+	calculateFoldProgress,
+	easeInOutStrong,
+} from "./bezier";
 import { DEFAULT_CONFIG } from "./flipEngineShared";
 
 /**
@@ -798,10 +802,7 @@ export class FlipEngine extends EventTarget implements PageFlipInstance {
 		await new Promise<void>((resolve) => {
 			const tick = (time: number) => {
 				const progress = Math.min((time - start) / this.config.flippingTime, 1);
-				const eased =
-					progress < 0.5
-						? 4 * progress * progress * progress
-						: 1 - (-2 * progress + 2) ** 3 / 2;
+				const eased = easeInOutStrong(progress);
 				this.renderFrame(eased);
 				if (progress < 1) {
 					this.runtime.frameId = requestAnimationFrame(tick);
