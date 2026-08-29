@@ -1,0 +1,17 @@
+# PageFlip
+
+> PageFlip is a modern page-turning library for building flip books, catalogs, magazines, comics, and document viewers with a polished reading experience. It ships as an ecosystem of TypeScript-first packages: a renderer-agnostic core, React wrapper, Web Components, and an optional theme layer.
+
+## Packages
+
+- [@pageflip/react](https://www.npmjs.com/package/@pageflip/react): React 18+ wrapper with SSR-safe integration.
+- [@pageflip/core](https://www.npmjs.com/package/@pageflip/core): Low-level engine, renderer agnostic, Canvas 2D, zero dependencies.
+- [@pageflip/web-component](https://www.npmjs.com/package/@pageflip/web-component): Framework-agnostic custom elements.
+- [@pageflip/theme](https://www.npmjs.com/package/@pageflip/theme): UI components, tokens, and styling primitives.
+- [@pageflip/renderers](https://www.npmjs.com/package/@pageflip/renderers): Renderer integrations.
+
+## Resources
+
+- [Documentation](https://pageflip.dev): Guides, API reference, and examples.
+- [Repository](https://github.com/ignaciobockl/pageflip): Source code and issues.
+- [Playground](http://localhost:5173): Interactive demos of the library components.

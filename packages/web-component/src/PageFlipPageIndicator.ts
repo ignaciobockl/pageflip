@@ -191,8 +191,11 @@ export class PageFlipPageIndicator extends HTMLElement {
 				}
 
 				.pf-page-indicator__dot {
-					width: var(--pf-page-indicator-size, 8px);
-					height: var(--pf-page-indicator-size, 8px);
+					width: var(--pf-page-indicator-hit-area, 24px);
+					height: var(--pf-page-indicator-hit-area, 24px);
+					padding: 8px;
+					box-sizing: border-box;
+					background-clip: content-box;
 					border-radius: 50%;
 					border: none;
 					background-color: var(--pf-page-indicator-color, #6c757d);

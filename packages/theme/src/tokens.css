@@ -71,6 +71,7 @@
 	--pf-toolbar-border: var(--pf-color-border);
 	--pf-page-indicator-gap: 8px;
 	--pf-page-indicator-size: 8px;
+	--pf-page-indicator-hit-area: 24px;
 	--pf-page-indicator-color: var(--pf-color-text-muted);
 	--pf-page-indicator-active-color: var(--pf-color-primary);
 	--pf-zoom-btn-size: 40px;
