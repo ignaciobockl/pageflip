@@ -18,6 +18,7 @@ import {
 	forwardRef,
 	useEffect,
 	useImperativeHandle,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -154,6 +155,24 @@ export const PageFlip = forwardRef<PageFlipInstance | null, PageFlipProps>(
 		const containerRef = useRef<HTMLDivElement>(null);
 		const contentRef = useRef<HTMLDivElement>(null);
 		const isMountedRef = useRef(false);
+		const initRef = useRef(false);
+		const pageFlipRef = useRef<PageFlipInstance | null>(null);
+		const handlersRef = useRef({
+			onInit,
+			onFlip,
+			onChangeState,
+			onChangeOrientation,
+			onUpdate,
+			onError,
+		});
+		handlersRef.current = {
+			onInit,
+			onFlip,
+			onChangeState,
+			onChangeOrientation,
+			onUpdate,
+			onError,
+		};
 		const [state, setState] = useState<PageFlipState>({
 			isClient: false,
 			instance: null,
@@ -222,36 +241,44 @@ export const PageFlip = forwardRef<PageFlipInstance | null, PageFlipProps>(
 				width,
 			],
 		);
+		const configRef = useRef(memoizedConfig);
+		configRef.current = memoizedConfig;
 
-		useEffect(() => {
-			if (!state.isClient || !containerRef.current) {
+		useLayoutEffect(() => {
+			if (!state.isClient || !containerRef.current || initRef.current) {
 				return;
 			}
 
+			initRef.current = true;
 			let cancelled = false;
 			let pageFlip: PageFlipInstance | null = null;
+			pageFlipRef.current = pageFlip;
 
 			const handleFlip = (event: Event) => {
-				onFlip?.((event as CustomEvent<FlipEvent>).detail);
+				handlersRef.current.onFlip?.((event as CustomEvent<FlipEvent>).detail);
 			};
 
 			const handleStateChange = (event: Event) => {
-				onChangeState?.((event as CustomEvent<StateChangeEvent>).detail);
+				handlersRef.current.onChangeState?.(
+					(event as CustomEvent<StateChangeEvent>).detail,
+				);
 			};
 
 			const handleOrientationChange = (event: Event) => {
-				onChangeOrientation?.(
+				handlersRef.current.onChangeOrientation?.(
 					(event as CustomEvent<OrientationChangeEvent>).detail,
 				);
 			};
 
 			const handleUpdate = (event: Event) => {
-				onUpdate?.((event as CustomEvent<PageFlipInstance>).detail);
+				handlersRef.current.onUpdate?.(
+					(event as CustomEvent<PageFlipInstance>).detail,
+				);
 			};
 
 			const handleError = (event: Event) => {
 				const error = (event as CustomEvent<Error>).detail;
-				onError?.(error);
+				handlersRef.current.onError?.(error);
 				if (isMountedRef.current) {
 					setState((previousState) => ({
 						...previousState,
@@ -300,7 +327,8 @@ export const PageFlip = forwardRef<PageFlipInstance | null, PageFlipProps>(
 						return;
 					}
 
-					pageFlip = new FlipEngine(containerRef.current, memoizedConfig);
+					pageFlip = new FlipEngine(containerRef.current, configRef.current);
+					pageFlipRef.current = pageFlip;
 					pageFlip.addEventListener("flip", handleFlip as EventListener);
 					pageFlip.addEventListener(
 						"statechange",
@@ -321,6 +349,7 @@ export const PageFlip = forwardRef<PageFlipInstance | null, PageFlipProps>(
 						const childElements = Array.from(
 							contentRef.current.children,
 						) as HTMLElement[];
+						console.log("[PageFlip] loading children:", childElements.length);
 						if (childElements.length > 0) {
 							await pageFlip.loadFromHtml(childElements);
 						}
@@ -332,7 +361,7 @@ export const PageFlip = forwardRef<PageFlipInstance | null, PageFlipProps>(
 							instance: pageFlip,
 							error: null,
 						}));
-						onInit?.(pageFlip);
+						handlersRef.current.onInit?.(pageFlip);
 					}
 				} catch (error) {
 					if (!cancelled && isMountedRef.current) {
@@ -342,7 +371,7 @@ export const PageFlip = forwardRef<PageFlipInstance | null, PageFlipProps>(
 							...previousState,
 							error: normalizedError,
 						}));
-						onError?.(normalizedError);
+						handlersRef.current.onError?.(normalizedError);
 					}
 				}
 			};
@@ -350,7 +379,9 @@ export const PageFlip = forwardRef<PageFlipInstance | null, PageFlipProps>(
 			void initialize();
 
 			return () => {
+				initRef.current = false;
 				cancelled = true;
+				pageFlipRef.current = null;
 				pageFlip?.removeEventListener("flip", handleFlip as EventListener);
 				pageFlip?.removeEventListener(
 					"statechange",
@@ -371,18 +402,11 @@ export const PageFlip = forwardRef<PageFlipInstance | null, PageFlipProps>(
 					}));
 				}
 			};
-		}, [
-			images,
-			memoizedConfig,
-			onChangeOrientation,
-			onChangeState,
-			onError,
-			onFlip,
-			onInit,
-			onUpdate,
-			pages,
-			state.isClient,
-		]);
+		}, [images, pages, state.isClient]);
+
+		useEffect(() => {
+			pageFlipRef.current?.updateConfig(memoizedConfig);
+		}, [memoizedConfig]);
 
 		useImperativeHandle(forwardedRef, () => state.instance, [state.instance]);
 
@@ -431,6 +455,8 @@ export const PageFlip = forwardRef<PageFlipInstance | null, PageFlipProps>(
 				ref={containerRef}
 				className={rootClassName}
 				style={rootStyle}
+				// biome-ignore lint/a11y/useSemanticElements: no native element represents a "book"; role=region with aria-roledescription is the correct ARIA mapping
+				role="region"
 				aria-roledescription="book"
 				aria-label="Interactive flip book"
 				data-current-page={state.instance?.currentPageIndex ?? 0}

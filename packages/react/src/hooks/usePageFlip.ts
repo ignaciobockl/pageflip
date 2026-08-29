@@ -115,7 +115,6 @@ export function usePageFlip<TPageData = unknown>(
 	const {
 		width,
 		height,
-		children,
 		pages,
 		images,
 		sources,
@@ -217,13 +216,11 @@ export function usePageFlip<TPageData = unknown>(
 
 		try {
 			const { FlipEngine } = await import("@pageflip/core");
-			const htmlElements =
-				children && containerRef.current
-					? Array.from(containerRef.current.children).filter(
-							(element): element is HTMLElement =>
-								element instanceof HTMLElement,
-						)
-					: [];
+			const htmlElements = containerRef.current
+				? Array.from(containerRef.current.children).filter(
+						(element): element is HTMLElement => element instanceof HTMLElement,
+					)
+				: [];
 			const pageFlip = new FlipEngine(
 				containerRef.current,
 				memoizedConfig,
@@ -294,7 +291,6 @@ export function usePageFlip<TPageData = unknown>(
 			setLoading(false);
 		}
 	}, [
-		children,
 		images,
 		memoizedConfig,
 		onChangeOrientation,
