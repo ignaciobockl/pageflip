@@ -108,10 +108,13 @@
 	--pf-shadow-inset: inset 0 2px 4px var(--pf-color-shadow);
 
 	/* ========== Transitions ========== */
-	--pf-transition-fast: 100ms ease;
-	--pf-transition-base: 200ms ease;
-	--pf-transition-slow: 300ms ease;
-	--pf-transition-flip: 1000ms cubic-bezier(0.4, 0, 0.2, 1);
+	--pf-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+	--pf-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+	--pf-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+	--pf-transition-fast: 140ms var(--pf-ease-out);
+	--pf-transition-base: 220ms var(--pf-ease-out);
+	--pf-transition-slow: 280ms var(--pf-ease-in-out);
+	--pf-transition-flip: 280ms var(--pf-ease-drawer);
 
 	/* ========== Z-Index ========== */
 	--pf-z-base: 0;
@@ -153,9 +156,9 @@
 
 	/* ========== Animation ========== */
 	--pf-animation-duration-fast: 150ms;
-	--pf-animation-duration-normal: 250ms;
-	--pf-animation-duration-slow: 350ms;
-	--pf-animation-easing: ease-out;
+	--pf-animation-duration-normal: 220ms;
+	--pf-animation-duration-slow: 280ms;
+	--pf-animation-easing: var(--pf-ease-out);
 }
 
 /* ========== Dark Theme ========== */
@@ -347,7 +350,7 @@
 	cursor: pointer;
 	opacity: 1;
 	transition: opacity var(--pf-transition-fast), background-color
-		var(--pf-transition-fast);
+		var(--pf-transition-fast), transform var(--pf-transition-fast);
 }
 
 .pf-toolbar .pf-btn--disabled,
@@ -376,4 +379,17 @@
 
 .pf-toolbar .pf-page-indicator__dot--muted {
 	opacity: 0.5;
+}
+
+.pf-btn:active:not(:disabled),
+.pf-fullscreen-toggle:active:not(:disabled),
+.pf-page-indicator__dot:active:not(:disabled) {
+	transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.pf-toolbar .pf-page-indicator__dot:hover,
+	.pf-page-indicator__dot:hover {
+		transform: scale(1.08);
+	}
 }

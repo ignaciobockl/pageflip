@@ -125,7 +125,7 @@ export const ZoomControls = forwardRef<HTMLDivElement, ZoomControlsProps>(
 						cursor: isMin ? "not-allowed" : "pointer",
 						opacity: isMin ? 0.4 : 1,
 						transition:
-							"opacity var(--pf-transition-fast), background-color var(--pf-transition-fast)",
+							"opacity var(--pf-transition-fast), background-color var(--pf-transition-fast), transform var(--pf-transition-fast)",
 					}}
 					aria-label="Zoom out"
 					aria-disabled={isMin}
@@ -166,7 +166,7 @@ export const ZoomControls = forwardRef<HTMLDivElement, ZoomControlsProps>(
 						cursor: isMax ? "not-allowed" : "pointer",
 						opacity: isMax ? 0.4 : 1,
 						transition:
-							"opacity var(--pf-transition-fast), background-color var(--pf-transition-fast)",
+							"opacity var(--pf-transition-fast), background-color var(--pf-transition-fast), transform var(--pf-transition-fast)",
 					}}
 					aria-label="Zoom in"
 					aria-disabled={isMax}
@@ -204,7 +204,7 @@ export const ZoomControls = forwardRef<HTMLDivElement, ZoomControlsProps>(
 						borderRadius: "var(--pf-radius-sm)",
 						cursor: "pointer",
 						transition:
-							"opacity var(--pf-transition-fast), background-color var(--pf-transition-fast)",
+							"opacity var(--pf-transition-fast), background-color var(--pf-transition-fast), transform var(--pf-transition-fast)",
 						opacity: level === 1 ? 0.5 : 1,
 					}}
 					aria-label="Reset zoom"

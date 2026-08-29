@@ -120,7 +120,8 @@ export const PageIndicator: React.FC<PageIndicatorProps> = ({
 										? "var(--pf-page-indicator-active-color)"
 										: "var(--pf-page-indicator-color)",
 								cursor: "pointer",
-								transition: "background-color var(--pf-transition-fast)",
+								transition:
+									"background-color var(--pf-transition-fast), transform var(--pf-transition-fast)",
 							}}
 							aria-label="First page"
 							aria-current={current === 0 ? "page" : undefined}
@@ -195,7 +196,8 @@ export const PageIndicator: React.FC<PageIndicatorProps> = ({
 											? "var(--pf-page-indicator-active-color)"
 											: "var(--pf-page-indicator-color)",
 									cursor: "pointer",
-									transition: "background-color var(--pf-transition-fast)",
+									transition:
+										"background-color var(--pf-transition-fast), transform var(--pf-transition-fast)",
 								}}
 								aria-label="Last page"
 								aria-current={current === total - 1 ? "page" : undefined}

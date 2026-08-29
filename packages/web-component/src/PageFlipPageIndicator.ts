@@ -204,8 +204,14 @@ export class PageFlipPageIndicator extends HTMLElement {
 						transform var(--pf-transition-fast, 150ms);
 				}
 
-				.pf-page-indicator__dot:hover {
-					transform: scale(1.2);
+				@media (hover: hover) and (pointer: fine) {
+					.pf-page-indicator__dot:hover {
+						transform: scale(1.08);
+					}
+				}
+
+				.pf-page-indicator__dot:active:not(:disabled) {
+					transform: scale(0.97);
 				}
 
 				.pf-page-indicator__dot--active {

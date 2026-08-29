@@ -198,15 +198,23 @@ export class PageFlipToolbar extends HTMLElement {
 					border-radius: var(--pf-radius-md, 8px);
 					cursor: pointer;
 					transition: opacity var(--pf-transition-fast, 150ms),
-						background-color var(--pf-transition-fast, 150ms);
+						background-color var(--pf-transition-fast, 150ms),
+						transform var(--pf-transition-fast, 150ms);
 				}
 
-				.pf-btn:hover:not(:disabled) {
-					background-color: var(--pf-color-bg-hover, #e2e8f0);
+				@media (hover: hover) and (pointer: fine) {
+					.pf-btn:hover:not(:disabled) {
+						background-color: var(--pf-color-bg-hover, #e2e8f0);
+					}
+
+					.pf-page-indicator__dot:hover {
+						transform: scale(1.08);
+					}
 				}
 
 				.pf-btn:active:not(:disabled) {
 					background-color: var(--pf-color-bg-active, #cbd5e1);
+					transform: scale(0.97);
 				}
 
 				.pf-btn:disabled {
@@ -252,8 +260,8 @@ export class PageFlipToolbar extends HTMLElement {
 						transform var(--pf-transition-fast, 150ms);
 				}
 
-				.pf-page-indicator__dot:hover {
-					transform: scale(1.2);
+				.pf-page-indicator__dot:active:not(:disabled) {
+					transform: scale(0.97);
 				}
 
 				.pf-page-indicator__dot--active {

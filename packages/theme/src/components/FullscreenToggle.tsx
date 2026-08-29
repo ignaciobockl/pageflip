@@ -152,7 +152,7 @@ export const FullscreenToggle = forwardRef<
 					borderRadius: "var(--pf-radius-md)",
 					cursor: "pointer",
 					transition:
-						"opacity var(--pf-transition-fast), background-color var(--pf-transition-fast)",
+						"opacity var(--pf-transition-fast), background-color var(--pf-transition-fast), transform var(--pf-transition-fast)",
 					...style,
 				}}
 				aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}

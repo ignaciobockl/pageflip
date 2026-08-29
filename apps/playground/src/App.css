@@ -73,7 +73,7 @@
 	font-weight: var(--pf-font-medium);
 	cursor: pointer;
 	transition: background-color var(--pf-transition-fast), opacity
-		var(--pf-transition-fast);
+		var(--pf-transition-fast), transform var(--pf-transition-fast);
 }
 
 .btn:hover:not(:disabled) {
@@ -83,6 +83,10 @@
 .btn:disabled {
 	opacity: 0.5;
 	cursor: not-allowed;
+}
+
+.btn:active:not(:disabled) {
+	transform: scale(0.97);
 }
 
 .btn--ghost {
