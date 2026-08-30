@@ -1,9 +1,9 @@
 import {
+	LayoutCalculator,
 	calculateFoldAngle,
 	calculateFoldCurve,
 	quadraticBezierPoint,
-} from "../../../packages/core/src/engine/bezier";
-import { LayoutCalculator } from "../../../packages/core/src/layout/LayoutCalculator";
+} from "@pageflip/core";
 
 type BenchmarkResult = {
 	name: string;
