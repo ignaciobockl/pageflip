@@ -19,8 +19,8 @@
 	"scripts": {
 		"dev": "bun build src/index.ts --watch --outdir dist --target bun",
 		"build": "bun build src/index.ts --outdir dist --target bun --external react --external \"react/*\" --external \"@pageflip/*\"",
-		"lint": "biome check . && bunx eslint . --ext .ts,.tsx",
-		"lint:fix": "biome check --write . && bunx eslint . --ext .ts,.tsx --fix",
+		"lint": "biome check . && bunx eslint .",
+		"lint:fix": "biome check --write . && bunx eslint . --fix",
 		"typecheck": "tsc --noEmit",
 		"test": "bun test",
 		"test:coverage": "bun test --coverage",

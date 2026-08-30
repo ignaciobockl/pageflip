@@ -2,7 +2,17 @@ const tsParser = require("@typescript-eslint/parser");
 
 module.exports = [
 	{
-		ignores: ["dist/**", "node_modules/**"],
+		ignores: [
+			"**/dist/**",
+			"**/coverage/**",
+			"**/.turbo/**",
+			"**/node_modules/**",
+			"**/*.config.cjs",
+			"**/*.config.js",
+			"**/playwright.config.ts",
+			"**/vite.config.ts",
+			"**/*.d.ts",
+		],
 	},
 	{
 		files: ["**/*.ts", "**/*.tsx"],
@@ -10,10 +20,6 @@ module.exports = [
 			ecmaVersion: "latest",
 			sourceType: "module",
 			parser: tsParser,
-			parserOptions: {
-				project: ["./tsconfig.eslint.json"],
-				tsconfigRootDir: __dirname,
-			},
 		},
 		rules: {},
 	},

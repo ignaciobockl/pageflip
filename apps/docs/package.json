@@ -7,8 +7,8 @@
 		"dev": "vitepress dev",
 		"build": "vitepress build",
 		"preview": "vitepress preview",
-		"lint": "biome check . && bunx eslint . --ext .ts,.tsx,.md",
-		"lint:fix": "biome check --write . && bunx eslint . --ext .ts,.tsx,.md --fix"
+		"lint": "biome check . && bunx eslint .",
+		"lint:fix": "biome check --write . && bunx eslint . --fix"
 	},
 	"dependencies": {
 		"@pageflip/core": "workspace:*",
