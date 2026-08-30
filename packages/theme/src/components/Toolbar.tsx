@@ -1,8 +1,6 @@
 import type { PageFlipControls } from "@pageflip/react";
 /**
- * Toolbar Component
- *
- * Navigation toolbar with prev/next buttons and page indicator.
+ * Toolbar Component - Navigation toolbar with prev/next buttons and page indicator.
  * @packageDocumentation
  */
 import type React from "react";
