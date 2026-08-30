@@ -7,6 +7,8 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 
+type CornerRef = React.MutableRefObject<HTMLDivElement | null>;
+
 /** Point in corner-local coordinates. */
 export interface CornerPoint {
 	x: number;
@@ -43,13 +45,14 @@ export interface UsePageCornerDragOptions {
  */
 export function usePageCornerDrag(options: UsePageCornerDragOptions): {
 	isDragging: boolean;
-	cornerRef: React.RefObject<HTMLDivElement | null>;
+	cornerRef: CornerRef;
+	setCornerRef: (element: HTMLDivElement | null) => void;
 	handleMouseDown: (event: React.MouseEvent<HTMLDivElement>) => void;
 	handleTouchStart: (event: React.TouchEvent<HTMLDivElement>) => void;
 } {
 	const { enabled, corner, onDragStart, onDragMove, onDragEnd } = options;
 	const [isDragging, setIsDragging] = useState(false);
-	const cornerRef = useRef<HTMLDivElement>(null);
+	const cornerRef: CornerRef = useRef<HTMLDivElement | null>(null);
 	const isDraggingRef = useRef(false);
 	const cleanupRef = useRef<(() => void) | null>(null);
 
@@ -168,9 +171,14 @@ export function usePageCornerDrag(options: UsePageCornerDragOptions): {
 		};
 	}, []);
 
+	const setCornerRef = (element: HTMLDivElement | null) => {
+		cornerRef.current = element;
+	};
+
 	return {
 		isDragging,
 		cornerRef,
+		setCornerRef,
 		handleMouseDown,
 		handleTouchStart,
 	};

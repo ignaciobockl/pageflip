@@ -2,7 +2,12 @@
 	"extends": "../../tools/tsconfig/tsconfig.lib.json",
 	"compilerOptions": {
 		"rootDir": "src",
-		"outDir": "dist"
+		"outDir": "dist",
+		"baseUrl": ".",
+		"paths": {
+			"@pageflip/core": ["../core/dist"],
+			"@pageflip/react": ["../react/dist"]
+		}
 	},
 	"include": ["src"]
 }

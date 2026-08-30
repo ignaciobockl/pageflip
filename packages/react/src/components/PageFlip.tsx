@@ -123,7 +123,11 @@ export const PageFlip = forwardRef<PageFlipInstance | null, PageFlipProps>(
 			onError,
 		});
 
-		useImperativeHandle(forwardedRef, () => state.instance, [state.instance]);
+		useImperativeHandle(
+			forwardedRef,
+			() => state.instance as PageFlipInstance,
+			[state.instance],
+		);
 
 		const rootClassName = `pf-book${className ? ` ${className}` : ""}`;
 		const rootStyle: CSSProperties = {

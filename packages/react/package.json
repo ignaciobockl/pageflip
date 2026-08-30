@@ -16,7 +16,7 @@
 	"files": ["dist"],
 	"scripts": {
 		"dev": "bun build src/index.ts --watch --outdir dist --target bun",
-		"build": "bun build src/index.ts --outdir dist --target bun --external react --external \"@pageflip/*\"",
+		"build": "bun build src/index.ts --outdir dist --target bun --external react --external \"@pageflip/*\" && tsc --emitDeclarationOnly",
 		"lint": "biome check . && bunx eslint .",
 		"lint:fix": "biome check --write . && bunx eslint . --fix",
 		"typecheck": "tsc --noEmit",

@@ -5,7 +5,7 @@
  * @packageDocumentation
  */
 import type React from "react";
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import { FullscreenEnter, FullscreenExit } from "./icons";
 
 /**
@@ -62,7 +62,6 @@ export const FullscreenToggle = forwardRef<
 		},
 		ref,
 	) => {
-		const buttonRef = useRef<HTMLButtonElement>(null);
 		const [fullscreenSupported, setFullscreenSupported] = useState(false);
 
 		useEffect(() => {
@@ -132,7 +131,6 @@ export const FullscreenToggle = forwardRef<
 		return (
 			<button
 				ref={(el) => {
-					buttonRef.current = el;
 					if (ref) {
 						if (typeof ref === "function") ref(el);
 						else if ("current" in ref) ref.current = el;

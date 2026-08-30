@@ -16,6 +16,8 @@ import type {
 import type { RefObject } from "react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
+type EventfulPageFlipInstance = PageFlipInstance & EventTarget;
+
 /**
  * Internal state for SSR safety
  */
@@ -119,7 +121,7 @@ export function usePageFlipEngine(options: UsePageFlipEngineOptions): {
 		}
 		initRef.current = true;
 		let cancelled = false;
-		let pageFlip: PageFlipInstance | null = null;
+		let pageFlip: EventfulPageFlipInstance | null = null;
 		instanceRef.current = pageFlip;
 
 		const handleFlip = (event: Event) => {
@@ -195,7 +197,10 @@ export function usePageFlipEngine(options: UsePageFlipEngineOptions): {
 					return;
 				}
 
-				pageFlip = new FlipEngine(containerRef.current, configRef.current);
+				pageFlip = new FlipEngine(
+					containerRef.current,
+					configRef.current,
+				) as EventfulPageFlipInstance;
 				instanceRef.current = pageFlip;
 				pageFlip.addEventListener("flip", handleFlip as EventListener);
 				pageFlip.addEventListener(

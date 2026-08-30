@@ -62,7 +62,7 @@ export const PageCorner = forwardRef<HTMLDivElement, PageCornerProps>(
 		ref,
 	) => {
 		const flipCorner = corner.startsWith("top") ? "top" : "bottom";
-		const { isDragging, cornerRef, handleMouseDown, handleTouchStart } =
+		const { isDragging, setCornerRef, handleMouseDown, handleTouchStart } =
 			usePageCornerDrag({
 				enabled: visible,
 				corner: flipCorner,
@@ -106,7 +106,7 @@ export const PageCorner = forwardRef<HTMLDivElement, PageCornerProps>(
 		return (
 			<div
 				ref={(element) => {
-					cornerRef.current = element;
+					setCornerRef(element);
 
 					if (typeof ref === "function") {
 						ref(element);
