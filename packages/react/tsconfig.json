@@ -3,11 +3,9 @@
 	"compilerOptions": {
 		"jsx": "react-jsx",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
-		"outDir": "dist",
-		"rootDir": "src",
 		"baseUrl": ".",
 		"paths": {
-			"@pageflip/core": ["../core/dist"]
+			"@pageflip/core": ["../core/src"]
 		}
 	},
 	"include": ["src/**/*"],
