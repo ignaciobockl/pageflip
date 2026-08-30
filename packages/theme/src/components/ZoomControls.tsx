@@ -6,6 +6,7 @@
  */
 import type React from "react";
 import { forwardRef } from "react";
+import { ZoomIn, ZoomOut, ZoomReset } from "./icons";
 
 /**
  * ZoomControls props
@@ -131,19 +132,7 @@ export const ZoomControls = forwardRef<HTMLDivElement, ZoomControlsProps>(
 					aria-disabled={isMin}
 					data-testid={`${testId}-out`}
 				>
-					<svg
-						width="20"
-						height="20"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="2"
-						aria-hidden="true"
-					>
-						<circle cx="11" cy="11" r="8" />
-						<line x1="21" y1="21" x2="16.65" y2="16.65" />
-						<line x1="8" y1="11" x2="14" y2="11" />
-					</svg>
+					<ZoomOut />
 				</button>
 
 				{levelIndicator !== undefined ? levelIndicator : defaultLevelIndicator}
@@ -172,20 +161,7 @@ export const ZoomControls = forwardRef<HTMLDivElement, ZoomControlsProps>(
 					aria-disabled={isMax}
 					data-testid={`${testId}-in`}
 				>
-					<svg
-						width="20"
-						height="20"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="2"
-						aria-hidden="true"
-					>
-						<circle cx="11" cy="11" r="8" />
-						<line x1="21" y1="21" x2="16.65" y2="16.65" />
-						<line x1="11" y1="8" x2="11" y2="14" />
-						<line x1="8" y1="11" x2="14" y2="11" />
-					</svg>
+					<ZoomIn />
 				</button>
 
 				<button
@@ -210,20 +186,7 @@ export const ZoomControls = forwardRef<HTMLDivElement, ZoomControlsProps>(
 					aria-label="Reset zoom"
 					data-testid={`${testId}-reset`}
 				>
-					<svg
-						width="20"
-						height="20"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="2"
-						aria-hidden="true"
-					>
-						<path d="M3 9v7h7" />
-						<path d="M21 15v-7h-7" />
-						<path d="M15 3a6 6 0 0 1 6 6" />
-						<path d="M9 21a6 6 0 0 1-6-6" />
-					</svg>
+					<ZoomReset />
 				</button>
 			</div>
 		);

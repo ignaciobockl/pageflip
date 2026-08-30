@@ -6,8 +6,8 @@
 	"scripts": {
 		"dev": "bun --watch src/index.ts",
 		"build": "bun build src/index.ts --outdir dist --target bun --external \"@pageflip/*\"",
-		"lint": "biome check . && bunx eslint . --ext .ts",
-		"lint:fix": "biome check --write . && bunx eslint . --ext .ts --fix",
+		"lint": "biome check . && bunx eslint .",
+		"lint:fix": "biome check --write . && bunx eslint . --fix",
 		"typecheck": "tsc --noEmit",
 		"test": "bun run src/index.ts",
 		"test:coverage": "bun run src/index.ts"

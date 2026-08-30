@@ -7,9 +7,15 @@ import type { PageFlipControls } from "@pageflip/react";
  */
 import type React from "react";
 import { forwardRef } from "react";
+import { ToolbarIndicator } from "./ToolbarIndicator";
+import {
+	ChevronLeft,
+	ChevronRight,
+	ChevronsLeft,
+	ChevronsRight,
+} from "./icons";
 import {
 	toolbarButtonVariants,
-	toolbarIndicatorDotVariants,
 	toolbarSectionVariants,
 	toolbarVariants,
 } from "./toolbar.variants";
@@ -94,35 +100,11 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 		const defaultIndicator = renderPageIndicator ? (
 			renderPageIndicator(currentPage, pageCount)
 		) : (
-			<>
-				<span className="pf-toolbar__page-text">
-					{currentPage + 1} / {pageCount}
-				</span>
-				<div className="pf-toolbar__page-dots" aria-label="Pages">
-					{Array.from(
-						{ length: Math.min(pageCount, 10) },
-						(_, index) => index + 1,
-					).map((pageNumber) => (
-						<button
-							key={pageNumber}
-							type="button"
-							onClick={() => controls.goTo(pageNumber - 1)}
-							className={toolbarIndicatorDotVariants({
-								state:
-									pageNumber - 1 === currentPage
-										? "active"
-										: pageCount > 10 && pageNumber >= 9
-											? "muted"
-											: undefined,
-							})}
-							aria-label={`Go to page ${pageNumber}`}
-							aria-current={pageNumber - 1 === currentPage ? "page" : undefined}
-							data-testid={`page-indicator-${pageNumber - 1}`}
-						/>
-					))}
-					{pageCount > 10 && <span className="pf-toolbar__ellipsis">...</span>}
-				</div>
-			</>
+			<ToolbarIndicator
+				controls={controls}
+				currentPage={currentPage}
+				pageCount={pageCount}
+			/>
 		);
 
 		const resolvedIndicator =
@@ -154,18 +136,7 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 						aria-disabled={isFirstPage}
 						data-testid="first-page-btn"
 					>
-						<svg
-							width="20"
-							height="20"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="2"
-							aria-hidden="true"
-						>
-							<polygon points="11 17 6 12 11 7" />
-							<polygon points="18 17 13 12 18 7" />
-						</svg>
+						<ChevronsLeft />
 					</button>
 					<button
 						type="button"
@@ -178,17 +149,7 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 						aria-disabled={isFirstPage}
 						data-testid="prev-page-btn"
 					>
-						<svg
-							width="20"
-							height="20"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="2"
-							aria-hidden="true"
-						>
-							<polyline points="15 18 9 12 15 6" />
-						</svg>
+						<ChevronLeft />
 					</button>
 				</div>
 
@@ -216,17 +177,7 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 						aria-disabled={isLastPage}
 						data-testid="next-page-btn"
 					>
-						<svg
-							width="20"
-							height="20"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="2"
-							aria-hidden="true"
-						>
-							<polyline points="9 18 15 12 9 6" />
-						</svg>
+						<ChevronRight />
 					</button>
 					<button
 						type="button"
@@ -239,18 +190,7 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 						aria-disabled={isLastPage}
 						data-testid="last-page-btn"
 					>
-						<svg
-							width="20"
-							height="20"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="2"
-							aria-hidden="true"
-						>
-							<polygon points="13 17 18 12 13 7" />
-							<polygon points="6 17 11 12 6 7" />
-						</svg>
+						<ChevronsRight />
 					</button>
 				</div>
 			</div>

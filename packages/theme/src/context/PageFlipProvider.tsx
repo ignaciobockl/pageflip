@@ -53,18 +53,6 @@ export interface PageFlipProviderProps {
 
 /**
  * PageFlipProvider - Context provider for PageFlip instance and controls
- *
- * @example
- * ```tsx
- * const { instance, ref } = usePageFlip({ width: 800, height: 600 });
- *
- * return (
- *   <PageFlipProvider instance={instance}>
- *     <Toolbar controls={controls} currentPage={state.currentPage} pageCount={state.pageCount} />
- *     <div ref={ref} />
- *   </PageFlipProvider>
- * );
- * ```
  */
 export const PageFlipProvider: React.FC<PageFlipProviderProps> = ({
 	instance,

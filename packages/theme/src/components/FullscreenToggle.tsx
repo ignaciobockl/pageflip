@@ -6,6 +6,7 @@
  */
 import type React from "react";
 import { forwardRef, useEffect, useRef, useState } from "react";
+import { FullscreenEnter, FullscreenExit } from "./icons";
 
 /**
  * FullscreenToggle props
@@ -159,34 +160,7 @@ export const FullscreenToggle = forwardRef<
 				aria-pressed={isFullscreen}
 				data-testid={testId}
 			>
-				{isFullscreen ? (
-					<svg
-						width="20"
-						height="20"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="2"
-						aria-hidden="true"
-					>
-						<path d="M8 3v3a2 2 0 0 1-2 2H3m0 0h3v3m0-3h3v3" />
-						<path d="M16 21v-3a2 2 0 0 1 2-2h3m0 0h-3v-3m0 3h-3v-3" />
-						<path d="M3 16v-3a2 2 0 0 1 2-2h3" />
-						<path d="M21 8v3a2 2 0 0 1-2 2h-3" />
-					</svg>
-				) : (
-					<svg
-						width="20"
-						height="20"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="2"
-						aria-hidden="true"
-					>
-						<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-					</svg>
-				)}
+				{isFullscreen ? <FullscreenExit /> : <FullscreenEnter />}
 			</button>
 		);
 	},
