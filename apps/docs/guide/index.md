@@ -13,17 +13,17 @@ hero:
       link: https://github.com/ignaciobockl/pageflip
   features:
     - title: ⚡ Zero Dependencies
-      details: Core engine has zero runtime dependencies. Only 12KB gzipped.
+      details: "Core engine has zero runtime dependencies. Only 12KB gzipped."
     - title: ♿ WCAG 2.1 AA
-      details: Built-in accessibility: keyboard nav, ARIA, focus management, reduced motion.
+      details: "Built-in accessibility: keyboard nav, ARIA, focus management, reduced motion."
     - title: 🎨 Themeable
-      details: CSS variables + Tailwind v4 preset. Light/Dark mode out of the box.
+      details: "CSS variables + Tailwind v4 preset. Light/Dark mode out of the box."
     - title: ⚛️ React 18+ Ready
-      details: Hooks-based API, SSR-safe, concurrent features support.
+      details: "Hooks-based API, SSR-safe, concurrent features support."
     - title: 🌐 Web Components
-      details: Framework-agnostic `<page-flip-book>` custom element with Shadow DOM.
+      details: "Framework-agnostic <page-flip-book> custom element with Shadow DOM."
     - title: 📦 Modular Renderers
-      details: Canvas 2D (MVP), WebGL (zoom/PDF), WebGPU (future). Lazy-loaded.
+      details: "Canvas 2D (MVP), WebGL (zoom/PDF), WebGPU (future). Lazy-loaded."
 ---
 
 # What is PageFlip?
