@@ -1,8 +1,10 @@
 {
-  "extends": "../../tools/tsconfig/tsconfig.lib.json",
-  "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "dist"
-  },
-  "include": ["src"]
+	"extends": "../../tools/tsconfig/tsconfig.lib.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@pageflip/core": ["../core/src"]
+		}
+	},
+	"include": ["src"]
 }

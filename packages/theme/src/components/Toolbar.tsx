@@ -1,12 +1,22 @@
 import type { PageFlipControls } from "@pageflip/react";
 /**
- * Toolbar Component
- *
- * Navigation toolbar with prev/next buttons and page indicator.
+ * Toolbar Component - Navigation toolbar with prev/next buttons and page indicator.
  * @packageDocumentation
  */
 import type React from "react";
 import { forwardRef } from "react";
+import { ToolbarIndicator } from "./ToolbarIndicator";
+import {
+	ChevronLeft,
+	ChevronRight,
+	ChevronsLeft,
+	ChevronsRight,
+} from "./icons";
+import {
+	toolbarButtonVariants,
+	toolbarSectionVariants,
+	toolbarVariants,
+} from "./toolbar.variants";
 
 /**
  * Toolbar props
@@ -22,6 +32,8 @@ export interface ToolbarProps {
 	pageCount: number;
 	/** Show page indicator */
 	showPageIndicator?: boolean;
+	/** Explicit indicator content. Pass `null` to hide it. */
+	indicator?: React.ReactNode | null;
 	/** Custom page indicator render */
 	renderPageIndicator?: (current: number, total: number) => React.ReactNode;
 	/** Additional CSS class */
@@ -56,6 +68,7 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 			currentPage,
 			pageCount,
 			showPageIndicator = true,
+			indicator,
 			renderPageIndicator,
 			className,
 			style,
@@ -82,277 +95,100 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
 			await controls.goTo(pageCount - 1);
 		};
 
+		const defaultIndicator = renderPageIndicator ? (
+			renderPageIndicator(currentPage, pageCount)
+		) : (
+			<ToolbarIndicator
+				controls={controls}
+				currentPage={currentPage}
+				pageCount={pageCount}
+			/>
+		);
+
+		const resolvedIndicator =
+			indicator !== undefined
+				? indicator
+				: showPageIndicator
+					? defaultIndicator
+					: null;
+
 		return (
 			<div
 				ref={ref}
 				data-testid={testId}
-				className={`pf-toolbar pf-toolbar--${position} ${className || ""}`}
-				style={{
-					position: "absolute",
-					[position]: 0,
-					left: 0,
-					right: 0,
-					height: "var(--pf-toolbar-height)",
-					display: "flex",
-					alignItems: "center",
-					justifyContent: "space-between",
-					padding: "0 var(--pf-space-md)",
-					backgroundColor: "var(--pf-toolbar-bg)",
-					borderTop:
-						position === "bottom"
-							? "1px solid var(--pf-toolbar-border)"
-							: "none",
-					borderBottom:
-						position === "top" ? "1px solid var(--pf-toolbar-border)" : "none",
-					zIndex: "var(--pf-z-dropdown)",
-					...style,
-				}}
+				className={`${toolbarVariants({ position })} ${className || ""}`}
+				style={style}
 				role="toolbar"
 				aria-label="Page navigation"
 			>
 				{/* Left: First/Prev */}
-				<div
-					className="pf-toolbar__start"
-					style={{
-						display: "flex",
-						alignItems: "center",
-						gap: "var(--pf-space-xs)",
-					}}
-				>
+				<div className={toolbarSectionVariants({ align: "start" })}>
 					<button
 						type="button"
 						onClick={handleFirst}
 						disabled={isFirstPage}
-						className="pf-btn pf-btn--icon pf-btn--ghost"
-						style={{
-							width: "var(--pf-zoom-btn-size)",
-							height: "var(--pf-zoom-btn-size)",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							border: "none",
-							background: "transparent",
-							color: "var(--pf-color-text)",
-							borderRadius: "var(--pf-radius-md)",
-							cursor: isFirstPage ? "not-allowed" : "pointer",
-							opacity: isFirstPage ? 0.4 : 1,
-							transition: "opacity var(--pf-transition-fast)",
-						}}
+						className={toolbarButtonVariants({
+							state: isFirstPage ? "disabled" : undefined,
+						})}
 						aria-label="First page"
 						aria-disabled={isFirstPage}
 						data-testid="first-page-btn"
 					>
-						<svg
-							width="20"
-							height="20"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="2"
-							aria-hidden="true"
-						>
-							<polygon points="11 17 6 12 11 7" />
-							<polygon points="18 17 13 12 18 7" />
-						</svg>
+						<ChevronsLeft />
 					</button>
 					<button
 						type="button"
 						onClick={handlePrev}
 						disabled={isFirstPage}
-						className="pf-btn pf-btn--icon pf-btn--ghost"
-						style={{
-							width: "var(--pf-zoom-btn-size)",
-							height: "var(--pf-zoom-btn-size)",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							border: "none",
-							background: "transparent",
-							color: "var(--pf-color-text)",
-							borderRadius: "var(--pf-radius-md)",
-							cursor: isFirstPage ? "not-allowed" : "pointer",
-							opacity: isFirstPage ? 0.4 : 1,
-							transition: "opacity var(--pf-transition-fast)",
-						}}
+						className={toolbarButtonVariants({
+							state: isFirstPage ? "disabled" : undefined,
+						})}
 						aria-label="Previous page"
 						aria-disabled={isFirstPage}
 						data-testid="prev-page-btn"
 					>
-						<svg
-							width="20"
-							height="20"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="2"
-							aria-hidden="true"
-						>
-							<polyline points="15 18 9 12 15 6" />
-						</svg>
+						<ChevronLeft />
 					</button>
 				</div>
 
 				{/* Center: Page Indicator */}
-				{showPageIndicator && (
+				{resolvedIndicator !== null && (
 					<div
-						className="pf-toolbar__center pf-page-indicator"
-						style={{
-							display: "flex",
-							alignItems: "center",
-							gap: "var(--pf-page-indicator-gap)",
-							flex: 1,
-							justifyContent: "center",
-						}}
+						className={`${toolbarSectionVariants({ align: "center" })} pf-page-indicator`}
 						aria-label="Page indicator"
 						data-testid="page-indicator"
 					>
-						{renderPageIndicator ? (
-							renderPageIndicator(currentPage, pageCount)
-						) : (
-							<>
-								<span
-									style={{
-										fontSize: "var(--pf-text-sm)",
-										color: "var(--pf-color-text-muted)",
-										minWidth: "4rem",
-										textAlign: "center",
-									}}
-								>
-									{currentPage + 1} / {pageCount}
-								</span>
-								<div
-									style={{
-										display: "flex",
-										gap: "var(--pf-page-indicator-gap)",
-									}}
-									aria-label="Pages"
-								>
-									{Array.from(
-										{ length: Math.min(pageCount, 10) },
-										(_, index) => index + 1,
-									).map((pageNumber) => (
-										<button
-											key={pageNumber}
-											type="button"
-											onClick={() => controls.goTo(pageNumber - 1)}
-											className={`pf-page-indicator__dot ${pageNumber - 1 === currentPage ? "pf-page-indicator__dot--active" : ""}`}
-											style={{
-												width: "var(--pf-page-indicator-size)",
-												height: "var(--pf-page-indicator-size)",
-												borderRadius: "var(--pf-radius-full)",
-												border: "none",
-												backgroundColor:
-													pageNumber - 1 === currentPage
-														? "var(--pf-page-indicator-active-color)"
-														: "var(--pf-page-indicator-color)",
-												cursor: "pointer",
-												transition:
-													"background-color var(--pf-transition-fast), transform var(--pf-transition-fast)",
-												opacity: pageCount > 10 && pageNumber >= 9 ? 0.5 : 1,
-											}}
-											aria-label={`Go to page ${pageNumber}`}
-											aria-current={
-												pageNumber - 1 === currentPage ? "page" : undefined
-											}
-											data-testid={`page-indicator-${pageNumber - 1}`}
-										/>
-									))}
-									{pageCount > 10 && (
-										<span
-											style={{
-												fontSize: "var(--pf-text-xs)",
-												color: "var(--pf-color-text-muted)",
-												alignSelf: "center",
-											}}
-										>
-											…
-										</span>
-									)}
-								</div>
-							</>
-						)}
+						{resolvedIndicator}
 					</div>
 				)}
 
 				{/* Right: Next/Last */}
-				<div
-					className="pf-toolbar__end"
-					style={{
-						display: "flex",
-						alignItems: "center",
-						gap: "var(--pf-space-xs)",
-					}}
-				>
+				<div className={toolbarSectionVariants({ align: "end" })}>
 					<button
 						type="button"
 						onClick={handleNext}
 						disabled={isLastPage}
-						className="pf-btn pf-btn--icon pf-btn--ghost"
-						style={{
-							width: "var(--pf-zoom-btn-size)",
-							height: "var(--pf-zoom-btn-size)",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							border: "none",
-							background: "transparent",
-							color: "var(--pf-color-text)",
-							borderRadius: "var(--pf-radius-md)",
-							cursor: isLastPage ? "not-allowed" : "pointer",
-							opacity: isLastPage ? 0.4 : 1,
-							transition: "opacity var(--pf-transition-fast)",
-						}}
+						className={toolbarButtonVariants({
+							state: isLastPage ? "disabled" : undefined,
+						})}
 						aria-label="Next page"
 						aria-disabled={isLastPage}
 						data-testid="next-page-btn"
 					>
-						<svg
-							width="20"
-							height="20"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="2"
-							aria-hidden="true"
-						>
-							<polyline points="9 18 15 12 9 6" />
-						</svg>
+						<ChevronRight />
 					</button>
 					<button
 						type="button"
 						onClick={handleLast}
 						disabled={isLastPage}
-						className="pf-btn pf-btn--icon pf-btn--ghost"
-						style={{
-							width: "var(--pf-zoom-btn-size)",
-							height: "var(--pf-zoom-btn-size)",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							border: "none",
-							background: "transparent",
-							color: "var(--pf-color-text)",
-							borderRadius: "var(--pf-radius-md)",
-							cursor: isLastPage ? "not-allowed" : "pointer",
-							opacity: isLastPage ? 0.4 : 1,
-							transition: "opacity var(--pf-transition-fast)",
-						}}
+						className={toolbarButtonVariants({
+							state: isLastPage ? "disabled" : undefined,
+						})}
 						aria-label="Last page"
 						aria-disabled={isLastPage}
 						data-testid="last-page-btn"
 					>
-						<svg
-							width="20"
-							height="20"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="2"
-							aria-hidden="true"
-						>
-							<polygon points="13 17 18 12 13 7" />
-							<polygon points="6 17 11 12 6 7" />
-						</svg>
+						<ChevronsRight />
 					</button>
 				</div>
 			</div>

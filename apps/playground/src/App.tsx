@@ -231,7 +231,6 @@ export const App: React.FC = () => {
 									console.log("PageFlip initialized", instance);
 									setMainInstance(instance);
 								}}
-								ref={setMainInstance}
 								showCover
 								showPageCorners
 								size={layout}
@@ -248,7 +247,9 @@ export const App: React.FC = () => {
 							<button
 								className="btn"
 								data-testid="prev-page-btn"
-								disabled={mainState.currentPage === 0}
+								disabled={
+									mainState.pageCount === 0 || mainState.currentPage === 0
+								}
 								onClick={() => void mainControls.prev()}
 								type="button"
 							>
@@ -260,7 +261,10 @@ export const App: React.FC = () => {
 							<button
 								className="btn"
 								data-testid="next-page-btn"
-								disabled={mainState.currentPage >= mainState.pageCount - 1}
+								disabled={
+									mainState.pageCount > 0 &&
+									mainState.currentPage >= mainState.pageCount - 1
+								}
 								onClick={() => void mainControls.next()}
 								type="button"
 							>
@@ -330,7 +334,7 @@ const ExternalControlsDemo: React.FC = () => {
 				<div className="controls-row">
 					<button
 						className="btn"
-						disabled={state.currentPage === 0}
+						disabled={state.pageCount === 0 || state.currentPage === 0}
 						onClick={() => void controls.prev()}
 						type="button"
 					>
@@ -341,7 +345,9 @@ const ExternalControlsDemo: React.FC = () => {
 					</span>
 					<button
 						className="btn"
-						disabled={state.currentPage >= state.pageCount - 1}
+						disabled={
+							state.pageCount === 0 || state.currentPage >= state.pageCount - 1
+						}
 						onClick={() => void controls.next()}
 						type="button"
 					>

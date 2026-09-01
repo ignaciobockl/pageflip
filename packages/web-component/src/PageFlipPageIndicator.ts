@@ -191,8 +191,11 @@ export class PageFlipPageIndicator extends HTMLElement {
 				}
 
 				.pf-page-indicator__dot {
-					width: var(--pf-page-indicator-size, 8px);
-					height: var(--pf-page-indicator-size, 8px);
+					width: var(--pf-page-indicator-hit-area, 24px);
+					height: var(--pf-page-indicator-hit-area, 24px);
+					padding: 8px;
+					box-sizing: border-box;
+					background-clip: content-box;
 					border-radius: 50%;
 					border: none;
 					background-color: var(--pf-page-indicator-color, #6c757d);
@@ -201,8 +204,14 @@ export class PageFlipPageIndicator extends HTMLElement {
 						transform var(--pf-transition-fast, 150ms);
 				}
 
-				.pf-page-indicator__dot:hover {
-					transform: scale(1.2);
+				@media (hover: hover) and (pointer: fine) {
+					.pf-page-indicator__dot:hover {
+						transform: scale(1.08);
+					}
+				}
+
+				.pf-page-indicator__dot:active:not(:disabled) {
+					transform: scale(0.97);
 				}
 
 				.pf-page-indicator__dot--active {

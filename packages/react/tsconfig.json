@@ -3,8 +3,12 @@
 	"compilerOptions": {
 		"jsx": "react-jsx",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"declarationDir": "dist",
 		"outDir": "dist",
-		"rootDir": "src"
+		"baseUrl": ".",
+		"paths": {
+			"@pageflip/core": ["../core/src"]
+		}
 	},
 	"include": ["src/**/*"],
 	"exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"]

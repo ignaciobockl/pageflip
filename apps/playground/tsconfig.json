@@ -3,8 +3,12 @@
 	"compilerOptions": {
 		"jsx": "react-jsx",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
-		"outDir": "dist",
-		"rootDir": "src"
+		"baseUrl": ".",
+		"paths": {
+			"@pageflip/core": ["../../packages/core/src"],
+			"@pageflip/react": ["../../packages/react/src"],
+			"@pageflip/theme": ["../../packages/theme/src"]
+		}
 	},
 	"include": ["src/**/*", "vite.config.ts"],
 	"exclude": [

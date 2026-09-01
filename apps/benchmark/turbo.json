@@ -1,0 +1,11 @@
+{
+	"extends": ["//"],
+	"tasks": {
+		"test": {
+			"outputs": ["dist/benchmark-results.json"]
+		},
+		"test:coverage": {
+			"outputs": ["dist/benchmark-results.json"]
+		}
+	}
+}

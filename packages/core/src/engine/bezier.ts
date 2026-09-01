@@ -115,3 +115,76 @@ export function lerpPoint(a: Point, b: Point, t: number): Point {
 		y: a.y + (b.y - a.y) * t,
 	};
 }
+
+/**
+ * Strong ease-in-out curve (matching the design token `--pf-ease-in-out`).
+ * Starts fast, decelerates late; suited for on-screen movement.
+ */
+export function easeInOutStrong(progress: number): number {
+	const clamped = Math.min(Math.max(progress, 0), 1);
+	return cubicBezierEase(clamped, 0.77, 0, 0.175, 1);
+}
+
+/**
+ * Evaluate a cubic bezier easing curve at parameter t.
+ *
+ * Uses a single Newton iteration then falls back to binary search to
+ * resolve x = t before sampling y, matching common CSS cubic-bezier
+ * implementations.
+ */
+export function cubicBezierEase(
+	t: number,
+	p1x: number,
+	p1y: number,
+	p2x: number,
+	p2y: number,
+): number {
+	const sampleCurveX = (value: number): number => {
+		const u = 1 - value;
+		return (
+			3 * u * u * value * p1x +
+			3 * u * value * value * p2x +
+			value * value * value
+		);
+	};
+	const sampleCurveY = (value: number): number => {
+		const u = 1 - value;
+		return (
+			3 * u * u * value * p1y +
+			3 * u * value * value * p2y +
+			value * value * value
+		);
+	};
+	const sampleCurveDerivativeX = (value: number): number => {
+		const u = 1 - value;
+		return (
+			3 * u * u * p1x +
+			6 * u * value * (p2x - p1x) +
+			3 * value * value * (1 - p2x)
+		);
+	};
+
+	if (t <= 0) return 0;
+	if (t >= 1) return 1;
+
+	let x = t;
+	for (let iteration = 0; iteration < 8; iteration += 1) {
+		const xEstimate = sampleCurveX(x) - t;
+		const derivative = sampleCurveDerivativeX(x);
+		if (Math.abs(xEstimate) < 1e-6) return sampleCurveY(x);
+		if (Math.abs(derivative) < 1e-6) break;
+		x -= xEstimate / derivative;
+	}
+
+	let lower = 0;
+	let upper = 1;
+	x = t;
+	while (lower < upper) {
+		const xEstimate = sampleCurveX(x);
+		if (Math.abs(xEstimate - t) < 1e-6) return sampleCurveY(x);
+		if (t < xEstimate) upper = x;
+		else lower = x;
+		x = (upper + lower) * 0.5;
+	}
+	return sampleCurveY(x);
+}

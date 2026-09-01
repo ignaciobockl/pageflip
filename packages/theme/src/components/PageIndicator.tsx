@@ -20,6 +20,8 @@ export interface PageIndicatorProps {
 	maxDots?: number;
 	/** Show page numbers instead of dots */
 	showNumbers?: boolean;
+	/** Explicit mode for indicator rendering. */
+	mode?: "dots" | "numbers";
 	/** Additional CSS class */
 	className?: string;
 	/** Inline styles */
@@ -28,17 +30,66 @@ export interface PageIndicatorProps {
 	testId?: string;
 }
 
+interface IndicatorDotProps {
+	/** Page index this dot navigates to */
+	pageIndex: number;
+	/** Whether this dot is active */
+	isActive: boolean;
+	/** Click handler */
+	onPageClick: (pageIndex: number) => void;
+	/** Label */
+	label: string;
+	/** Test ID */
+	testId: string;
+}
+
+const IndicatorDot: React.FC<IndicatorDotProps> = ({
+	pageIndex,
+	isActive,
+	onPageClick,
+	label,
+	testId,
+}) => (
+	<button
+		type="button"
+		onClick={() => onPageClick(pageIndex)}
+		className={`pf-page-indicator__dot ${isActive ? "pf-page-indicator__dot--active" : ""}`}
+		style={{
+			width: "var(--pf-page-indicator-hit-area)",
+			height: "var(--pf-page-indicator-hit-area)",
+			padding: "8px",
+			boxSizing: "border-box",
+			backgroundClip: "content-box",
+			borderRadius: "var(--pf-radius-full)",
+			border: "none",
+			backgroundColor: isActive
+				? "var(--pf-page-indicator-active-color)"
+				: "var(--pf-page-indicator-color)",
+			cursor: "pointer",
+			transition:
+				"background-color var(--pf-transition-fast), transform var(--pf-transition-fast)",
+		}}
+		aria-label={label}
+		aria-current={isActive ? "page" : undefined}
+		data-testid={testId}
+	/>
+);
+
+const Ellipsis: React.FC = () => (
+	<span
+		style={{
+			fontSize: "var(--pf-text-xs)",
+			color: "var(--pf-color-text-muted)",
+			padding: "0 var(--pf-space-xs)",
+		}}
+		aria-hidden="true"
+	>
+		…
+	</span>
+);
+
 /**
  * PageIndicator - Standalone page navigation dots/numbers
- *
- * @example
- * ```tsx
- * <PageIndicator
- *   current={2}
- *   total={10}
- *   onPageClick={goTo}
- * />
- * ```
  */
 export const PageIndicator: React.FC<PageIndicatorProps> = ({
 	current,
@@ -46,6 +97,7 @@ export const PageIndicator: React.FC<PageIndicatorProps> = ({
 	onPageClick,
 	maxDots = 10,
 	showNumbers = false,
+	mode,
 	className,
 	style,
 	testId = "pageflip-page-indicator",
@@ -61,6 +113,7 @@ export const PageIndicator: React.FC<PageIndicatorProps> = ({
 		(_, i) => startIndex + i,
 	);
 	const allPages = Array.from({ length: total }, (_, pageIndex) => pageIndex);
+	const resolvedMode = mode ?? (showNumbers ? "numbers" : "dots");
 
 	return (
 		<nav
@@ -74,7 +127,7 @@ export const PageIndicator: React.FC<PageIndicatorProps> = ({
 			}}
 			aria-label={`Page ${current + 1} of ${total}`}
 		>
-			{showNumbers ? (
+			{resolvedMode === "numbers" ? (
 				<select
 					value={current}
 					onChange={(e) => onPageClick(Number(e.target.value))}
@@ -99,94 +152,34 @@ export const PageIndicator: React.FC<PageIndicatorProps> = ({
 			) : (
 				<>
 					{startIndex > 0 && (
-						<button
-							type="button"
-							onClick={() => onPageClick(0)}
-							className="pf-page-indicator__dot"
-							style={{
-								width: "var(--pf-page-indicator-size)",
-								height: "var(--pf-page-indicator-size)",
-								borderRadius: "var(--pf-radius-full)",
-								border: "none",
-								backgroundColor:
-									current === 0
-										? "var(--pf-page-indicator-active-color)"
-										: "var(--pf-page-indicator-color)",
-								cursor: "pointer",
-								transition: "background-color var(--pf-transition-fast)",
-							}}
-							aria-label="First page"
-							aria-current={current === 0 ? "page" : undefined}
-							data-testid={`${testId}-first`}
+						<IndicatorDot
+							pageIndex={0}
+							isActive={current === 0}
+							onPageClick={onPageClick}
+							label="First page"
+							testId={`${testId}-first`}
 						/>
 					)}
-					{startIndex > 1 && (
-						<span
-							style={{
-								fontSize: "var(--pf-text-xs)",
-								color: "var(--pf-color-text-muted)",
-								padding: "0 var(--pf-space-xs)",
-							}}
-							aria-hidden="true"
-						>
-							…
-						</span>
-					)}
+					{startIndex > 1 && <Ellipsis />}
 					{pages.map((pageIndex) => (
-						<button
+						<IndicatorDot
 							key={pageIndex}
-							type="button"
-							onClick={() => onPageClick(pageIndex)}
-							className={`pf-page-indicator__dot ${pageIndex === current ? "pf-page-indicator__dot--active" : ""}`}
-							style={{
-								width: "var(--pf-page-indicator-size)",
-								height: "var(--pf-page-indicator-size)",
-								borderRadius: "var(--pf-radius-full)",
-								border: "none",
-								backgroundColor:
-									pageIndex === current
-										? "var(--pf-page-indicator-active-color)"
-										: "var(--pf-page-indicator-color)",
-								cursor: "pointer",
-								transition:
-									"background-color var(--pf-transition-fast), transform var(--pf-transition-fast)",
-							}}
-							aria-label={`Page ${pageIndex + 1}`}
-							aria-current={pageIndex === current ? "page" : undefined}
-							data-testid={`${testId}-${pageIndex}`}
+							pageIndex={pageIndex}
+							isActive={pageIndex === current}
+							onPageClick={onPageClick}
+							label={`Page ${pageIndex + 1}`}
+							testId={`${testId}-${pageIndex}`}
 						/>
 					))}
 					{endIndex < total && (
 						<>
-							<span
-								style={{
-									fontSize: "var(--pf-text-xs)",
-									color: "var(--pf-color-text-muted)",
-									padding: "0 var(--pf-space-xs)",
-								}}
-								aria-hidden="true"
-							>
-								…
-							</span>
-							<button
-								type="button"
-								onClick={() => onPageClick(total - 1)}
-								className="pf-page-indicator__dot"
-								style={{
-									width: "var(--pf-page-indicator-size)",
-									height: "var(--pf-page-indicator-size)",
-									borderRadius: "var(--pf-radius-full)",
-									border: "none",
-									backgroundColor:
-										current === total - 1
-											? "var(--pf-page-indicator-active-color)"
-											: "var(--pf-page-indicator-color)",
-									cursor: "pointer",
-									transition: "background-color var(--pf-transition-fast)",
-								}}
-								aria-label="Last page"
-								aria-current={current === total - 1 ? "page" : undefined}
-								data-testid={`${testId}-last`}
+							{endIndex < total - 1 && <Ellipsis />}
+							<IndicatorDot
+								pageIndex={total - 1}
+								isActive={current === total - 1}
+								onPageClick={onPageClick}
+								label="Last page"
+								testId={`${testId}-last`}
 							/>
 						</>
 					)}
