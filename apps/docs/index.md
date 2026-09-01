@@ -2,8 +2,8 @@
 layout: home
 hero:
   name: PageFlip
-  text: Modern page flip docs for the full monorepo
-  tagline: Complete guides, API reference, components, examples, and migration paths for the PageFlip ecosystem.
+  text: Build digital books that feel printed, not templated
+  tagline: Guides, APIs, components, and migration paths for a page-turning stack shaped like an editorial product, not a generic widget.
   actions:
     - theme: brand
       text: Get started
@@ -15,19 +15,19 @@ hero:
       text: GitHub
       link: https://github.com/ignaciobockl/pageflip
 features:
-  - title: Complete documentation
-    details: Covers installation, usage, APIs, components, examples, and migration guidance in one place.
-  - title: Monorepo-first
-    details: Documents the shared architecture across core, React, theme, and web component packages.
-  - title: Practical examples
-    details: Includes integration patterns for basic readers, theming, hooks, SSR, and custom content.
-  - title: Migration-ready
-    details: Helps teams move from legacy page flip libraries to the modern PageFlip stack.
+  - title: Editorial interaction
+    details: Learn how the engine, UI primitives, and render layers combine into readers, catalogs, magazines, and folios that feel deliberate.
+  - title: One stack, many surfaces
+    details: Move across core, React, theme, and web components without losing the shared language of layout, motion, and accessibility.
+  - title: Production patterns
+    details: Use documented integration paths for SSR, theming, hooks, keyboard control, and custom content pipelines.
+  - title: Migration with taste
+    details: Replace legacy flip-book integrations with a modern stack that ships stronger defaults and cleaner APIs.
 ---
 
 ## Why this site exists
 
-PageFlip ships multiple packages that work together: a renderer-agnostic engine, React bindings, theming primitives, and framework-friendly integrations. This docs site centralizes the reference material needed to adopt and extend the stack.
+PageFlip ships multiple packages that work together: a renderer-agnostic engine, React bindings, theming primitives, and framework-friendly integrations. This site exists to make that system legible the way a good editorial front page does: show the spine, the rhythm, and the intent before you open the first page.
 
 ## Packages
 

@@ -1,0 +1,162 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+	--color-pf-bg: var(--pf-color-bg);
+	--color-pf-bg-secondary: var(--pf-color-bg-secondary);
+	--color-pf-bg-tertiary: var(--pf-color-bg-tertiary);
+	--color-pf-bg-hover: var(--pf-color-bg-hover);
+	--color-pf-bg-active: var(--pf-color-bg-active);
+	--color-pf-text: var(--pf-color-text);
+	--color-pf-text-secondary: var(--pf-color-text-secondary);
+	--color-pf-text-muted: var(--pf-color-text-muted);
+	--color-pf-text-inverse: var(--pf-color-text-inverse);
+	--color-pf-text-link: var(--pf-color-text-link);
+	--color-pf-text-link-hover: var(--pf-color-text-link-hover);
+	--color-pf-primary: var(--pf-color-primary);
+	--color-pf-primary-hover: var(--pf-color-primary-hover);
+	--color-pf-primary-active: var(--pf-color-primary-active);
+	--color-pf-primary-light: var(--pf-color-primary-light);
+	--color-pf-border: var(--pf-color-border);
+	--color-pf-border-strong: var(--pf-color-border-strong);
+	--color-pf-border-focus: var(--pf-color-border-focus);
+	--color-pf-shadow: var(--pf-color-shadow);
+	--color-pf-shadow-strong: var(--pf-color-shadow-strong);
+	--color-pf-shadow-focus: var(--pf-color-shadow-focus);
+	--color-pf-overlay: var(--pf-color-overlay);
+	--color-pf-overlay-strong: var(--pf-color-overlay-strong);
+	--color-pf-success: var(--pf-color-success);
+	--color-pf-success-light: var(--pf-color-success-light);
+	--color-pf-warning: var(--pf-color-warning);
+	--color-pf-warning-light: var(--pf-color-warning-light);
+	--color-pf-error: var(--pf-color-error);
+	--color-pf-error-light: var(--pf-color-error-light);
+	--color-pf-info: var(--pf-color-info);
+	--color-pf-info-light: var(--pf-color-info-light);
+	--spacing-pf-0: var(--pf-space-0);
+	--spacing-pf-xs: var(--pf-space-xs);
+	--spacing-pf-sm: var(--pf-space-sm);
+	--spacing-pf-md: var(--pf-space-md);
+	--spacing-pf-lg: var(--pf-space-lg);
+	--spacing-pf-xl: var(--pf-space-xl);
+	--spacing-pf-2xl: var(--pf-space-2xl);
+	--spacing-pf-3xl: var(--pf-space-3xl);
+	--radius-pf-none: var(--pf-radius-none);
+	--radius-pf-sm: var(--pf-radius-sm);
+	--radius-pf-md: var(--pf-radius-md);
+	--radius-pf-lg: var(--pf-radius-lg);
+	--radius-pf-xl: var(--pf-radius-xl);
+	--radius-pf-2xl: var(--pf-radius-2xl);
+	--radius-pf-full: var(--pf-radius-full);
+	--shadow-pf-xs: var(--pf-shadow-xs);
+	--shadow-pf-sm: var(--pf-shadow-sm);
+	--shadow-pf-md: var(--pf-shadow-md);
+	--shadow-pf-lg: var(--pf-shadow-lg);
+	--shadow-pf-xl: var(--pf-shadow-xl);
+	--shadow-pf-2xl: var(--pf-shadow-2xl);
+	--shadow-pf-flip: var(--pf-shadow-flip);
+	--shadow-pf-focus: var(--pf-shadow-focus);
+	--shadow-pf-inset: var(--pf-shadow-inset);
+	--font-sans: var(--pf-font-sans);
+	--font-mono: var(--pf-font-mono);
+	--text-pf-xs: var(--pf-text-xs);
+	--text-pf-sm: var(--pf-text-sm);
+	--text-pf-base: var(--pf-text-base);
+	--text-pf-lg: var(--pf-text-lg);
+	--text-pf-xl: var(--pf-text-xl);
+	--text-pf-2xl: var(--pf-text-2xl);
+	--text-pf-3xl: var(--pf-text-3xl);
+	--font-weight-pf-normal: var(--pf-font-normal);
+	--font-weight-pf-medium: var(--pf-font-medium);
+	--font-weight-pf-semibold: var(--pf-font-semibold);
+	--font-weight-pf-bold: var(--pf-font-bold);
+	--leading-pf-tight: var(--pf-leading-tight);
+	--leading-pf-normal: var(--pf-leading-normal);
+	--leading-pf-relaxed: var(--pf-leading-relaxed);
+	--animate-pf-flip: flip var(--pf-transition-flip) var(--pf-animation-easing);
+	--animate-pf-fade-in: fadeIn var(--pf-transition-base)
+		var(--pf-animation-easing);
+	--animate-pf-fade-out: fadeOut var(--pf-transition-base)
+		var(--pf-animation-easing);
+	--animate-pf-slide-up: slideUp var(--pf-transition-slow)
+		var(--pf-animation-easing);
+	--animate-pf-slide-down: slideDown var(--pf-transition-slow)
+		var(--pf-animation-easing);
+	--animate-pf-scale-in: scaleIn var(--pf-transition-fast)
+		var(--pf-animation-easing);
+	--animate-pf-scale-out: scaleOut var(--pf-transition-fast)
+		var(--pf-animation-easing);
+	--animate-pf-spin: spin 1s linear infinite;
+
+	@keyframes flip {
+		0% {
+			transform: rotateY(0deg);
+		}
+		100% {
+			transform: rotateY(180deg);
+		}
+	}
+
+	@keyframes fadeIn {
+		0% {
+			opacity: 0;
+		}
+		100% {
+			opacity: 1;
+		}
+	}
+
+	@keyframes fadeOut {
+		0% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+		}
+	}
+
+	@keyframes slideUp {
+		0% {
+			transform: translateY(10px);
+			opacity: 0;
+		}
+		100% {
+			transform: translateY(0);
+			opacity: 1;
+		}
+	}
+
+	@keyframes slideDown {
+		0% {
+			transform: translateY(-10px);
+			opacity: 0;
+		}
+		100% {
+			transform: translateY(0);
+			opacity: 1;
+		}
+	}
+
+	@keyframes scaleIn {
+		0% {
+			transform: scale(0.95);
+			opacity: 0;
+		}
+		100% {
+			transform: scale(1);
+			opacity: 1;
+		}
+	}
+
+	@keyframes scaleOut {
+		0% {
+			transform: scale(1);
+			opacity: 1;
+		}
+		100% {
+			transform: scale(0.95);
+			opacity: 0;
+		}
+	}
+}

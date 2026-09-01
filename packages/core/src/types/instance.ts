@@ -11,7 +11,7 @@ import type {
 /**
  * Public PageFlip instance interface.
  */
-export type PageFlipInstance = {
+export type PageFlipInstance = EventTarget & {
 	/** Total number of pages. */
 	readonly pageCount: number;
 	/** Current page index (0-based). */

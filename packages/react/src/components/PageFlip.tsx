@@ -11,19 +11,11 @@ import type {
 	PageData,
 	PageFlipConfig,
 	PageFlipInstance,
-	PageSource,
 	StateChangeEvent,
 } from "@pageflip/core";
-import {
-	forwardRef,
-	useEffect,
-	useImperativeHandle,
-	useLayoutEffect,
-	useMemo,
-	useRef,
-	useState,
-} from "react";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import { usePageFlipEngine } from "../hooks/usePageFlipEngine";
 
 /**
  * PageFlip component props
@@ -56,15 +48,6 @@ export interface PageFlipProps<TPageData = unknown>
 	className?: string;
 	/** Inline styles */
 	style?: CSSProperties;
-}
-
-/**
- * Internal state for SSR safety
- */
-interface PageFlipState {
-	isClient: boolean;
-	instance: PageFlipInstance | null;
-	error: Error | null;
 }
 
 const baseStyle = {
@@ -100,18 +83,6 @@ const errorContainerStyle = {
  *   <div>Page 2</div>
  * </PageFlip>
  * ```
- *
- * @example
- * ```tsx
- * <PageFlip
- *   width={800}
- *   height={600}
- *   pages={[
- *     { id: '1', index: 0, density: 'soft', content: { type: 'html', element: page1Element } },
- *     { id: '2', index: 1, density: 'soft', content: { type: 'image', src: '/page2.jpg' } }
- *   ]}
- * />
- * ```
  */
 export const PageFlip = forwardRef<PageFlipInstance | null, PageFlipProps>(
 	(
@@ -129,286 +100,34 @@ export const PageFlip = forwardRef<PageFlipInstance | null, PageFlipProps>(
 			onError,
 			className,
 			style,
-			size,
-			minWidth,
-			maxWidth,
-			minHeight,
-			maxHeight,
-			flippingTime,
-			drawShadow,
-			maxShadowOpacity,
-			showCover,
-			usePortrait,
-			mobileScrollSupport,
-			swipeDistance,
-			clickEventForward,
-			disableFlipByClick,
-			showPageCorners,
-			renderer,
-			rendererOptions,
-			ariaLabel,
-			ariaLabelPrev,
-			ariaLabelNext,
+			...configFields
 		},
 		forwardedRef,
 	) => {
-		const containerRef = useRef<HTMLDivElement>(null);
 		const contentRef = useRef<HTMLDivElement>(null);
-		const isMountedRef = useRef(false);
-		const initRef = useRef(false);
-		const pageFlipRef = useRef<PageFlipInstance | null>(null);
-		const handlersRef = useRef({
+
+		const { containerRef, state } = usePageFlipEngine({
+			config: {
+				...configFields,
+				width,
+				height,
+			},
+			pages,
+			images,
+			contentRef,
 			onInit,
+			onUpdate,
 			onFlip,
 			onChangeState,
 			onChangeOrientation,
-			onUpdate,
 			onError,
 		});
-		handlersRef.current = {
-			onInit,
-			onFlip,
-			onChangeState,
-			onChangeOrientation,
-			onUpdate,
-			onError,
-		};
-		const [state, setState] = useState<PageFlipState>({
-			isClient: false,
-			instance: null,
-			error: null,
-		});
 
-		useEffect(() => {
-			isMountedRef.current = true;
-			setState((previousState) => ({
-				...previousState,
-				isClient: true,
-			}));
-
-			return () => {
-				isMountedRef.current = false;
-			};
-		}, []);
-
-		const memoizedConfig = useMemo<PageFlipConfig>(
-			() => ({
-				width,
-				height,
-				size,
-				minWidth,
-				maxWidth,
-				minHeight,
-				maxHeight,
-				flippingTime,
-				drawShadow,
-				maxShadowOpacity,
-				showCover,
-				usePortrait,
-				mobileScrollSupport,
-				swipeDistance,
-				clickEventForward,
-				disableFlipByClick,
-				showPageCorners,
-				renderer,
-				rendererOptions,
-				ariaLabel,
-				ariaLabelPrev,
-				ariaLabelNext,
-			}),
-			[
-				ariaLabel,
-				ariaLabelNext,
-				ariaLabelPrev,
-				clickEventForward,
-				disableFlipByClick,
-				drawShadow,
-				flippingTime,
-				height,
-				maxHeight,
-				maxShadowOpacity,
-				maxWidth,
-				minHeight,
-				minWidth,
-				mobileScrollSupport,
-				renderer,
-				rendererOptions,
-				showCover,
-				showPageCorners,
-				size,
-				swipeDistance,
-				usePortrait,
-				width,
-			],
+		useImperativeHandle(
+			forwardedRef,
+			() => state.instance as PageFlipInstance,
+			[state.instance],
 		);
-		const configRef = useRef(memoizedConfig);
-		configRef.current = memoizedConfig;
-
-		useLayoutEffect(() => {
-			if (!state.isClient || !containerRef.current || initRef.current) {
-				return;
-			}
-
-			initRef.current = true;
-			let cancelled = false;
-			let pageFlip: PageFlipInstance | null = null;
-			pageFlipRef.current = pageFlip;
-
-			const handleFlip = (event: Event) => {
-				handlersRef.current.onFlip?.((event as CustomEvent<FlipEvent>).detail);
-			};
-
-			const handleStateChange = (event: Event) => {
-				handlersRef.current.onChangeState?.(
-					(event as CustomEvent<StateChangeEvent>).detail,
-				);
-			};
-
-			const handleOrientationChange = (event: Event) => {
-				handlersRef.current.onChangeOrientation?.(
-					(event as CustomEvent<OrientationChangeEvent>).detail,
-				);
-			};
-
-			const handleUpdate = (event: Event) => {
-				handlersRef.current.onUpdate?.(
-					(event as CustomEvent<PageFlipInstance>).detail,
-				);
-			};
-
-			const handleError = (event: Event) => {
-				const error = (event as CustomEvent<Error>).detail;
-				handlersRef.current.onError?.(error);
-				if (isMountedRef.current) {
-					setState((previousState) => ({
-						...previousState,
-						error,
-					}));
-				}
-			};
-
-			const toPageSource = ({
-				content,
-				density,
-				metadata,
-			}: PageData): PageSource => {
-				if (content.type === "html") {
-					return {
-						type: content.type,
-						content: content.element,
-						density,
-						metadata,
-					};
-				}
-
-				if (content.type === "image") {
-					return {
-						type: content.type,
-						content: content.src,
-						density,
-						metadata,
-					};
-				}
-
-				return {
-					type: content.type,
-					content: content.source,
-					density,
-					rendererId: content.rendererId,
-					metadata,
-				};
-			};
-
-			const initialize = async () => {
-				try {
-					const { FlipEngine } = await import("@pageflip/core");
-
-					if (cancelled || !containerRef.current) {
-						return;
-					}
-
-					pageFlip = new FlipEngine(containerRef.current, configRef.current);
-					pageFlipRef.current = pageFlip;
-					pageFlip.addEventListener("flip", handleFlip as EventListener);
-					pageFlip.addEventListener(
-						"statechange",
-						handleStateChange as EventListener,
-					);
-					pageFlip.addEventListener(
-						"orientationchange",
-						handleOrientationChange as EventListener,
-					);
-					pageFlip.addEventListener("update", handleUpdate as EventListener);
-					pageFlip.addEventListener("error", handleError as EventListener);
-
-					if (images && images.length > 0) {
-						await pageFlip.loadFromImages(images);
-					} else if (pages && pages.length > 0) {
-						await pageFlip.loadFromSources(pages.map(toPageSource));
-					} else if (contentRef.current) {
-						const childElements = Array.from(
-							contentRef.current.children,
-						) as HTMLElement[];
-						console.log("[PageFlip] loading children:", childElements.length);
-						if (childElements.length > 0) {
-							await pageFlip.loadFromHtml(childElements);
-						}
-					}
-
-					if (!cancelled && isMountedRef.current) {
-						setState((previousState) => ({
-							...previousState,
-							instance: pageFlip,
-							error: null,
-						}));
-						handlersRef.current.onInit?.(pageFlip);
-					}
-				} catch (error) {
-					if (!cancelled && isMountedRef.current) {
-						const normalizedError =
-							error instanceof Error ? error : new Error(String(error));
-						setState((previousState) => ({
-							...previousState,
-							error: normalizedError,
-						}));
-						handlersRef.current.onError?.(normalizedError);
-					}
-				}
-			};
-
-			void initialize();
-
-			return () => {
-				initRef.current = false;
-				cancelled = true;
-				pageFlipRef.current = null;
-				pageFlip?.removeEventListener("flip", handleFlip as EventListener);
-				pageFlip?.removeEventListener(
-					"statechange",
-					handleStateChange as EventListener,
-				);
-				pageFlip?.removeEventListener(
-					"orientationchange",
-					handleOrientationChange as EventListener,
-				);
-				pageFlip?.removeEventListener("update", handleUpdate as EventListener);
-				pageFlip?.removeEventListener("error", handleError as EventListener);
-				pageFlip?.destroy();
-
-				if (isMountedRef.current) {
-					setState((previousState) => ({
-						...previousState,
-						instance: null,
-					}));
-				}
-			};
-		}, [images, pages, state.isClient]);
-
-		useEffect(() => {
-			pageFlipRef.current?.updateConfig(memoizedConfig);
-		}, [memoizedConfig]);
-
-		useImperativeHandle(forwardedRef, () => state.instance, [state.instance]);
 
 		const rootClassName = `pf-book${className ? ` ${className}` : ""}`;
 		const rootStyle: CSSProperties = {

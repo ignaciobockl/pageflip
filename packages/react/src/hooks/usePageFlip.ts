@@ -25,7 +25,7 @@ export interface UsePageFlipReturn<TPageData = unknown> {
 	/** PageFlip instance (null on server) */
 	instance: PageFlipInstance | null;
 	/** Ref to attach to container element */
-	ref: RefObject<HTMLDivElement | null>;
+	ref: RefObject<HTMLDivElement>;
 	/** Loading state */
 	loading: boolean;
 	/** Error if initialization failed */

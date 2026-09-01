@@ -3,7 +3,16 @@
 
 .app {
 	min-height: 100vh;
-	background-color: var(--pf-color-bg);
+	background: radial-gradient(
+			circle at top,
+			color-mix(in srgb, var(--pf-color-primary) 14%, transparent),
+			transparent 40%
+		),
+		linear-gradient(
+			180deg,
+			var(--pf-color-bg) 0%,
+			var(--pf-color-bg-secondary) 100%
+		);
 	color: var(--pf-color-text);
 	font-family: var(--pf-font-sans);
 	transition: background-color var(--pf-transition-base), color
@@ -15,17 +24,23 @@
 	align-items: center;
 	justify-content: space-between;
 	padding: var(--pf-space-md) var(--pf-space-xl);
-	background-color: var(--pf-color-bg-secondary);
+	background: color-mix(in srgb, var(--pf-color-bg-secondary) 88%, transparent);
 	border-bottom: 1px solid var(--pf-color-border);
 	position: sticky;
 	top: 0;
 	z-index: var(--pf-z-sticky);
+	backdrop-filter: blur(16px);
 }
 
 .logo {
-	font-size: var(--pf-text-xl);
+	font-size: clamp(var(--pf-text-xl), 2vw, var(--pf-text-2xl));
 	font-weight: var(--pf-font-bold);
-	color: var(--pf-color-primary);
+	letter-spacing: -0.04em;
+	color: color-mix(
+		in srgb,
+		var(--pf-color-primary) 82%,
+		var(--pf-color-text) 18%
+	);
 	margin: 0;
 }
 
@@ -58,7 +73,7 @@
 	font-weight: var(--pf-font-medium);
 	cursor: pointer;
 	transition: background-color var(--pf-transition-fast), opacity
-		var(--pf-transition-fast);
+		var(--pf-transition-fast), transform var(--pf-transition-fast);
 }
 
 .btn:hover:not(:disabled) {
@@ -68,6 +83,10 @@
 .btn:disabled {
 	opacity: 0.5;
 	cursor: not-allowed;
+}
+
+.btn:active:not(:disabled) {
+	transform: scale(0.97);
 }
 
 .btn--ghost {
@@ -89,15 +108,17 @@
 
 .main {
 	padding: var(--pf-space-xl);
-	max-width: 1200px;
+	max-width: 1280px;
 	margin: 0 auto;
 }
 
 .section-title {
-	font-size: var(--pf-text-lg);
+	font-size: var(--pf-text-sm);
 	font-weight: var(--pf-font-semibold);
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
 	margin-bottom: var(--pf-space-lg);
-	color: var(--pf-color-text);
+	color: var(--pf-color-text-muted);
 }
 
 .demo-section,
@@ -110,8 +131,10 @@
 	margin: 0 auto;
 	border-radius: var(--pf-radius-lg);
 	overflow: hidden;
-	box-shadow: var(--pf-shadow-xl);
+	box-shadow: 0 28px 60px
+		color-mix(in srgb, var(--pf-color-shadow-strong) 80%, transparent);
 	background-color: var(--pf-color-bg);
+	border: 1px solid color-mix(in srgb, var(--pf-color-border) 80%, transparent);
 }
 
 .external-controls {
@@ -142,9 +165,14 @@
 	flex-direction: column;
 	gap: var(--pf-space-md);
 	padding: var(--pf-space-lg);
-	background-color: var(--pf-color-bg-secondary);
+	background: linear-gradient(
+		180deg,
+		color-mix(in srgb, var(--pf-color-bg-secondary) 88%, transparent),
+		color-mix(in srgb, var(--pf-color-bg) 92%, transparent)
+	);
 	border-radius: var(--pf-radius-lg);
 	border: 1px solid var(--pf-color-border);
+	box-shadow: var(--pf-shadow-md);
 }
 
 .controls-row {
@@ -180,7 +208,11 @@
 	display: flex;
 	justify-content: center;
 	padding: var(--pf-space-lg);
-	background-color: var(--pf-color-bg-secondary);
+	background: linear-gradient(
+		180deg,
+		color-mix(in srgb, var(--pf-color-bg-secondary) 92%, transparent),
+		color-mix(in srgb, var(--pf-color-bg) 96%, transparent)
+	);
 	border: 1px solid var(--pf-color-border);
 	border-radius: var(--pf-radius-lg);
 	overflow: auto;
@@ -199,7 +231,11 @@
 
 .component-card {
 	padding: var(--pf-space-lg);
-	background-color: var(--pf-color-bg-secondary);
+	background: linear-gradient(
+		180deg,
+		color-mix(in srgb, var(--pf-color-bg-secondary) 92%, transparent),
+		color-mix(in srgb, var(--pf-color-bg) 98%, transparent)
+	);
 	border: 1px solid var(--pf-color-border);
 	border-radius: var(--pf-radius-lg);
 	display: flex;
@@ -262,17 +298,29 @@
 
 .page--cover {
 	background: linear-gradient(
-		135deg,
-		var(--pf-color-primary-light) 0%,
-		var(--pf-color-bg) 100%
+		145deg,
+		color-mix(
+				in srgb,
+				var(--pf-color-primary-light) 72%,
+				var(--pf-color-bg) 28%
+			)
+			0%,
+		var(--pf-color-bg) 52%,
+		color-mix(in srgb, var(--pf-color-primary) 18%, var(--pf-color-bg) 82%) 100%
 	);
 }
 
 .page--back {
 	background: linear-gradient(
-		135deg,
+		145deg,
 		var(--pf-color-bg-secondary) 0%,
-		var(--pf-color-primary-light) 100%
+		var(--pf-color-bg) 58%,
+		color-mix(
+				in srgb,
+				var(--pf-color-primary-light) 78%,
+				var(--pf-color-bg) 22%
+			)
+			100%
 	);
 }
 
@@ -282,7 +330,8 @@
 }
 
 .page h1 {
-	font-size: var(--pf-text-3xl);
+	font-size: clamp(2.8rem, 5vw, 4.6rem);
+	letter-spacing: -0.05em;
 	margin-bottom: var(--pf-space-md);
 	color: var(--pf-color-primary);
 }

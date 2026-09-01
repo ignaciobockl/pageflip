@@ -108,10 +108,13 @@
 	--pf-shadow-inset: inset 0 2px 4px var(--pf-color-shadow);
 
 	/* ========== Transitions ========== */
-	--pf-transition-fast: 100ms ease;
-	--pf-transition-base: 200ms ease;
-	--pf-transition-slow: 300ms ease;
-	--pf-transition-flip: 1000ms cubic-bezier(0.4, 0, 0.2, 1);
+	--pf-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+	--pf-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+	--pf-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+	--pf-transition-fast: 140ms var(--pf-ease-out);
+	--pf-transition-base: 220ms var(--pf-ease-out);
+	--pf-transition-slow: 280ms var(--pf-ease-in-out);
+	--pf-transition-flip: 280ms var(--pf-ease-drawer);
 
 	/* ========== Z-Index ========== */
 	--pf-z-base: 0;
@@ -153,9 +156,9 @@
 
 	/* ========== Animation ========== */
 	--pf-animation-duration-fast: 150ms;
-	--pf-animation-duration-normal: 250ms;
-	--pf-animation-duration-slow: 350ms;
-	--pf-animation-easing: ease-out;
+	--pf-animation-duration-normal: 220ms;
+	--pf-animation-duration-slow: 280ms;
+	--pf-animation-easing: var(--pf-ease-out);
 }
 
 /* ========== Dark Theme ========== */
@@ -279,4 +282,114 @@
 
 *::-webkit-scrollbar-thumb:hover {
 	background-color: var(--pf-color-border-strong);
+}
+
+.pf-toolbar {
+	position: absolute;
+	left: 0;
+	right: 0;
+	height: var(--pf-toolbar-height);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 var(--pf-space-md);
+	background-color: var(--pf-toolbar-bg);
+	z-index: var(--pf-z-dropdown);
+}
+
+.pf-toolbar--top {
+	top: 0;
+	border-bottom: 1px solid var(--pf-toolbar-border);
+}
+
+.pf-toolbar--bottom {
+	bottom: 0;
+	border-top: 1px solid var(--pf-toolbar-border);
+}
+
+.pf-toolbar__section {
+	display: flex;
+	align-items: center;
+	gap: var(--pf-space-xs);
+}
+
+.pf-toolbar__center {
+	flex: 1;
+	justify-content: center;
+	gap: var(--pf-page-indicator-gap);
+}
+
+.pf-toolbar__page-text {
+	font-size: var(--pf-text-sm);
+	color: var(--pf-color-text-muted);
+	min-width: 4rem;
+	text-align: center;
+}
+
+.pf-toolbar__page-dots {
+	display: flex;
+	gap: var(--pf-page-indicator-gap);
+}
+
+.pf-toolbar__ellipsis {
+	font-size: var(--pf-text-xs);
+	color: var(--pf-color-text-muted);
+	align-self: center;
+}
+
+.pf-toolbar .pf-btn {
+	width: var(--pf-zoom-btn-size);
+	height: var(--pf-zoom-btn-size);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: none;
+	background: transparent;
+	color: var(--pf-color-text);
+	border-radius: var(--pf-radius-md);
+	cursor: pointer;
+	opacity: 1;
+	transition: opacity var(--pf-transition-fast), background-color
+		var(--pf-transition-fast), transform var(--pf-transition-fast);
+}
+
+.pf-toolbar .pf-btn--disabled,
+.pf-toolbar .pf-btn:disabled {
+	cursor: not-allowed;
+	opacity: 0.4;
+}
+
+.pf-toolbar .pf-page-indicator__dot {
+	width: var(--pf-page-indicator-hit-area);
+	height: var(--pf-page-indicator-hit-area);
+	padding: 8px;
+	box-sizing: border-box;
+	background-clip: content-box;
+	border-radius: var(--pf-radius-full);
+	border: none;
+	background-color: var(--pf-page-indicator-color);
+	cursor: pointer;
+	transition: background-color var(--pf-transition-fast), transform
+		var(--pf-transition-fast);
+}
+
+.pf-toolbar .pf-page-indicator__dot--active {
+	background-color: var(--pf-page-indicator-active-color);
+}
+
+.pf-toolbar .pf-page-indicator__dot--muted {
+	opacity: 0.5;
+}
+
+.pf-btn:active:not(:disabled),
+.pf-fullscreen-toggle:active:not(:disabled),
+.pf-page-indicator__dot:active:not(:disabled) {
+	transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.pf-toolbar .pf-page-indicator__dot:hover,
+	.pf-page-indicator__dot:hover {
+		transform: scale(1.08);
+	}
 }

@@ -1,8 +1,9 @@
 import type {
-	PageFlipControls,
+	OrientationChangeEvent,
 	PageFlipInstance,
-	PageFlipState,
-} from "@pageflip/react";
+	StateChangeEvent,
+} from "@pageflip/core";
+import type { PageFlipControls, PageFlipState } from "@pageflip/react";
 /**
  * PageFlip Context Provider
  *
@@ -19,6 +20,8 @@ import {
 	useRef,
 	useState,
 } from "react";
+
+type EventfulPageFlipInstance = PageFlipInstance & EventTarget;
 
 /**
  * Context value type
@@ -53,18 +56,6 @@ export interface PageFlipProviderProps {
 
 /**
  * PageFlipProvider - Context provider for PageFlip instance and controls
- *
- * @example
- * ```tsx
- * const { instance, ref } = usePageFlip({ width: 800, height: 600 });
- *
- * return (
- *   <PageFlipProvider instance={instance}>
- *     <Toolbar controls={controls} currentPage={state.currentPage} pageCount={state.pageCount} />
- *     <div ref={ref} />
- *   </PageFlipProvider>
- * );
- * ```
  */
 export const PageFlipProvider: React.FC<PageFlipProviderProps> = ({
 	instance,
@@ -82,9 +73,13 @@ export const PageFlipProvider: React.FC<PageFlipProviderProps> = ({
 			return;
 		}
 
+		const eventfulInstance = instance as EventfulPageFlipInstance;
+
 		const nextControls: PageFlipControls = {
 			next: () => instance.flipNext(),
 			prev: () => instance.flipPrev(),
+			flipNext: (corner?: "top" | "bottom") => instance.flipNext(corner),
+			flipPrev: (corner?: "top" | "bottom") => instance.flipPrev(corner),
 			goTo: (page: number) => instance.turnToPage(page),
 			flipTo: (page: number, corner?: "top" | "bottom") =>
 				instance.flip(page, corner),
@@ -110,36 +105,38 @@ export const PageFlipProvider: React.FC<PageFlipProviderProps> = ({
 		updateState();
 
 		const handleFlip = () => updateState();
-		const handleStateChange = (
-			_event: CustomEvent<import("@pageflip/react").StateChangeEvent>,
-		) => updateState();
+		const handleStateChange = (_event: CustomEvent<StateChangeEvent>) =>
+			updateState();
 		const handleOrientationChange = (
-			_event: CustomEvent<import("@pageflip/react").OrientationChangeEvent>,
+			_event: CustomEvent<OrientationChangeEvent>,
 		) => updateState();
 		const handleUpdate = () => updateState();
 
-		instance.addEventListener("flip", handleFlip as EventListener);
-		instance.addEventListener(
+		eventfulInstance.addEventListener("flip", handleFlip as EventListener);
+		eventfulInstance.addEventListener(
 			"statechange",
 			handleStateChange as EventListener,
 		);
-		instance.addEventListener(
+		eventfulInstance.addEventListener(
 			"orientationchange",
 			handleOrientationChange as EventListener,
 		);
-		instance.addEventListener("update", handleUpdate as EventListener);
+		eventfulInstance.addEventListener("update", handleUpdate as EventListener);
 
 		return () => {
-			instance.removeEventListener("flip", handleFlip as EventListener);
-			instance.removeEventListener(
+			eventfulInstance.removeEventListener("flip", handleFlip as EventListener);
+			eventfulInstance.removeEventListener(
 				"statechange",
 				handleStateChange as EventListener,
 			);
-			instance.removeEventListener(
+			eventfulInstance.removeEventListener(
 				"orientationchange",
 				handleOrientationChange as EventListener,
 			);
-			instance.removeEventListener("update", handleUpdate as EventListener);
+			eventfulInstance.removeEventListener(
+				"update",
+				handleUpdate as EventListener,
+			);
 		};
 	}, [instance]);
 
