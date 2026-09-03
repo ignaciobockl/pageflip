@@ -1,0 +1,87 @@
+.config-panel {
+	background: #f8f9fa;
+	border: 1px solid #dee2e6;
+	border-radius: 8px;
+	padding: 20px;
+	max-width: 400px;
+	width: 100%;
+}
+
+.config-panel h3 {
+	margin-top: 0;
+	margin-bottom: 15px;
+	color: #333;
+}
+
+.config-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 10px;
+}
+
+.config-row label {
+	font-size: 14px;
+	color: #555;
+}
+
+.config-row input[type="range"] {
+	width: 150px;
+}
+
+.config-row input[type="number"] {
+	width: 80px;
+	padding: 5px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+
+.config-row select {
+	padding: 5px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+
+.config-row .toggle {
+	position: relative;
+	width: 50px;
+	height: 26px;
+}
+
+.config-row .toggle input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.config-row .toggle .slider {
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #ccc;
+	transition: 0.4s;
+	border-radius: 26px;
+}
+
+.config-row .toggle .slider:before {
+	position: absolute;
+	content: "";
+	height: 20px;
+	width: 20px;
+	left: 3px;
+	bottom: 3px;
+	background-color: white;
+	transition: 0.4s;
+	border-radius: 50%;
+}
+
+.config-row .toggle input:checked + .slider {
+	background-color: #667eea;
+}
+
+.config-row .toggle input:checked + .slider:before {
+	transform: translateX(24px);
+}

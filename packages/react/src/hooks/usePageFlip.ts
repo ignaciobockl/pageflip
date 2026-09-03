@@ -152,7 +152,25 @@ export function usePageFlip<TPageData = unknown>(
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<Error | null>(null);
 	const initRef = useRef(false);
+	const isMountedRef = useRef(false);
+	const generationRef = useRef(0);
 	const instanceRef = useRef<EventfulPageFlipInstance | null>(null);
+	const handlersRef = useRef({
+		onInit,
+		onFlip,
+		onChangeState,
+		onChangeOrientation,
+		onUpdate,
+		onError,
+	});
+	handlersRef.current = {
+		onInit,
+		onFlip,
+		onChangeState,
+		onChangeOrientation,
+		onUpdate,
+		onError,
+	};
 
 	const memoizedConfig = useMemo<PageFlipConfig>(
 		() => ({
@@ -213,9 +231,20 @@ export function usePageFlip<TPageData = unknown>(
 		initRef.current = true;
 		setLoading(true);
 		setError(null);
+		generationRef.current += 1;
+		const generation = generationRef.current;
 
 		try {
 			const { FlipEngine } = await import("@pageflip/core");
+
+			if (
+				generation !== generationRef.current ||
+				!isMountedRef.current ||
+				!containerRef.current
+			) {
+				return;
+			}
+
 			const htmlElements = containerRef.current
 				? Array.from(containerRef.current.children).filter(
 						(element): element is HTMLElement => element instanceof HTMLElement,
@@ -227,27 +256,31 @@ export function usePageFlip<TPageData = unknown>(
 			) as EventfulPageFlipInstance;
 
 			const handleFlip = (event: Event) => {
-				onFlip?.((event as CustomEvent<FlipEvent>).detail);
+				handlersRef.current.onFlip?.((event as CustomEvent<FlipEvent>).detail);
 			};
 
 			const handleStateChange = (event: Event) => {
-				onChangeState?.((event as CustomEvent<StateChangeEvent>).detail);
+				handlersRef.current.onChangeState?.(
+					(event as CustomEvent<StateChangeEvent>).detail,
+				);
 			};
 
 			const handleOrientationChange = (event: Event) => {
-				onChangeOrientation?.(
+				handlersRef.current.onChangeOrientation?.(
 					(event as CustomEvent<OrientationChangeEvent>).detail,
 				);
 			};
 
 			const handleUpdate = (event: Event) => {
-				onUpdate?.((event as CustomEvent<PageFlipInstance>).detail);
+				handlersRef.current.onUpdate?.(
+					(event as CustomEvent<PageFlipInstance>).detail,
+				);
 			};
 
 			const handleError = (event: Event) => {
 				const nextError = (event as CustomEvent<Error>).detail;
 				setError(nextError);
-				onError?.(nextError);
+				handlersRef.current.onError?.(nextError);
 			};
 
 			pageFlip.addEventListener("flip", handleFlip as EventListener);
@@ -275,33 +308,31 @@ export function usePageFlip<TPageData = unknown>(
 				await pageFlip.loadFromHtml(htmlElements);
 			}
 
-			onInit?.(pageFlip);
+			if (!isMountedRef.current) {
+				pageFlip.destroy();
+				return;
+			}
+
+			handlersRef.current.onInit?.(pageFlip);
 		} catch (caughtError) {
 			const nextError =
 				caughtError instanceof Error
 					? caughtError
 					: new Error(String(caughtError));
-			setError(nextError);
-			onError?.(nextError);
+			if (isMountedRef.current) {
+				setError(nextError);
+				handlersRef.current.onError?.(nextError);
+			}
 			instanceRef.current?.destroy();
 			instanceRef.current = null;
 			setInstance(null);
 			initRef.current = false;
 		} finally {
-			setLoading(false);
+			if (isMountedRef.current) {
+				setLoading(false);
+			}
 		}
-	}, [
-		images,
-		memoizedConfig,
-		onChangeOrientation,
-		onChangeState,
-		onError,
-		onFlip,
-		onInit,
-		onUpdate,
-		pages,
-		sources,
-	]);
+	}, [images, memoizedConfig, pages, sources]);
 
 	const reload = useCallback(
 		async (newConfig?: Partial<PageFlipConfig>) => {
@@ -321,11 +352,15 @@ export function usePageFlip<TPageData = unknown>(
 	);
 
 	useEffect(() => {
+		isMountedRef.current = true;
+
 		if (autoInit) {
 			void initialize();
 		}
 
 		return () => {
+			isMountedRef.current = false;
+			generationRef.current += 1;
 			instanceRef.current?.destroy();
 			instanceRef.current = null;
 			initRef.current = false;
